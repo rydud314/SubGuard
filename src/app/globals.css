@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-brand-radial text-navy-800 antialiased;
+}
+
+::selection {
+  @apply bg-mint-200 text-navy-900;
+}
+
+/* thin, minty scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(24, 207, 195, 0.35);
+  border-radius: 999px;
+}
+
+@layer components {
+  .glass-card {
+    @apply rounded-2xl border border-white/60 bg-white/80 shadow-soft backdrop-blur-xl;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-gradient px-5 py-3
+      text-sm font-semibold text-white shadow-card transition-all duration-200
+      hover:scale-105 hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-mint-200 bg-white px-5 py-3
+      text-sm font-semibold text-navy-700 transition-all duration-200
+      hover:scale-105 hover:border-mint-400 hover:bg-mint-50 active:scale-95;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-navy-100 bg-white px-4 py-3 text-sm text-navy-800
+      placeholder:text-navy-400/60 transition-all duration-200
+      focus:border-mint-400 focus:outline-none focus:ring-4 focus:ring-mint-100;
+  }
+}
