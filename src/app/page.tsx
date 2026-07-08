@@ -9,7 +9,9 @@ import { Sidebar } from "@/components/Sidebar";
 import { MonthCalendar } from "@/components/MonthCalendar";
 import { MonthlyCostSummary } from "@/components/MonthlyCostSummary";
 import { UpcomingPaymentsCard } from "@/components/UpcomingPaymentsCard";
+import { TrialEndingCard } from "@/components/TrialEndingCard";
 import { RegisterModal } from "@/components/RegisterModal";
+import { SubscriptionDetailModal } from "@/components/SubscriptionDetailModal";
 import { getNextOccurrence } from "@/lib/recurrence";
 import { daysUntil } from "@/lib/format";
 import { ShieldLogo, BrandWordmark } from "@/components/icons/ShieldLogo";
@@ -31,23 +33,41 @@ function buildPreviewSubscriptions(): Subscription[] {
     return d.toISOString().slice(0, 10);
   };
   return [
-    { id: "preview-netflix", user_id: "preview", name: "넷플릭스", price: 17000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "N", color: "#E50914", created_at: "" },
-    { id: "preview-youtube", user_id: "preview", name: "유튜브 프리미엄", price: 14900, pay_date: iso(1), cycle_count: 1, cycle_unit: "월", icon_label: "▶", color: "#FF0000", created_at: "" },
-    { id: "preview-disney", user_id: "preview", name: "디즈니+", price: 9900, pay_date: iso(3), cycle_count: 1, cycle_unit: "월", icon_label: "D", color: "#113CCF", created_at: "" },
-    { id: "preview-spotify", user_id: "preview", name: "스포티파이", price: 10900, pay_date: iso(8), cycle_count: 1, cycle_unit: "월", icon_label: "S", color: "#1DB954", created_at: "" },
-    { id: "preview-watcha", user_id: "preview", name: "왓챠", price: 12900, pay_date: iso(-10), cycle_count: 1, cycle_unit: "월", icon_label: "W", color: "#FF0558", created_at: "" },
+    { id: "preview-netflix", user_id: "preview", name: "넷플릭스", price: 17000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "N", color: "#E50914", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
+    { id: "preview-youtube", user_id: "preview", name: "유튜브 프리미엄", price: 14900, pay_date: iso(1), cycle_count: 1, cycle_unit: "월", icon_label: "▶", color: "#FF0000", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
+    { id: "preview-disney", user_id: "preview", name: "디즈니+", price: 9900, pay_date: iso(3), cycle_count: 1, cycle_unit: "월", icon_label: "D", color: "#113CCF", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
+    { id: "preview-spotify", user_id: "preview", name: "스포티파이", price: 10900, pay_date: iso(8), cycle_count: 1, cycle_unit: "월", icon_label: "S", color: "#1DB954", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
+    { id: "preview-watcha", user_id: "preview", name: "왓챠", price: 12900, pay_date: iso(-10), cycle_count: 1, cycle_unit: "월", icon_label: "W", color: "#FF0558", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
+    { id: "preview-chatgpt-trial", user_id: "preview", name: "챗GPT 플러스", price: 22000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "AI", color: "#10A37F", created_at: "", kind: "trial", trial_auto_pay: true, canceled_from: null },
   ];
 }
 
 export default function HomePage() {
   const router = useRouter();
   const { user, loading: sessionLoading } = useSession();
-  const { subscriptions: liveSubscriptions, loading: subsLoading } = useSubscriptions(user?.id);
+  const {
+    subscriptions: liveSubscriptions,
+    loading: subsLoading,
+    updateSubscription,
+    cancelSubscription,
+  } = useSubscriptions(user?.id);
   const subscriptions = isPreviewMode && !user ? buildPreviewSubscriptions() : liveSubscriptions;
 
   const [currentDate, setCurrentDate] = useState(() => startOfMonth(new Date()));
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [dismissedModal, setDismissedModal] = useState(false);
+  const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
+  const [showMobileLogoutConfirm, setShowMobileLogoutConfirm] = useState(false);
+
+  const account = user
+    ? {
+        email: user.email ?? "",
+        name: (user.user_metadata?.full_name as string | undefined) ?? (user.user_metadata?.name as string | undefined) ?? "",
+        avatarUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
+      }
+    : isPreviewMode
+      ? { email: "preview@subguard.app", name: "미리보기 사용자", avatarUrl: null }
+      : null;
 
   useEffect(() => {
     if (sessionLoading || isPreviewMode) return;
@@ -90,7 +110,7 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-dvh">
-      <Sidebar upcomingCount={upcomingCount} onSignOut={handleSignOut} />
+      <Sidebar upcomingCount={upcomingCount} onSignOut={handleSignOut} account={account} />
 
       <main className="flex-1 px-5 py-6 sm:px-8 sm:py-8">
         <header className="mb-6 flex items-center justify-between md:hidden">
@@ -100,7 +120,7 @@ export default function HomePage() {
           </div>
           <button
             type="button"
-            onClick={handleSignOut}
+            onClick={() => setShowMobileLogoutConfirm(true)}
             className="text-xs font-semibold text-navy-400 hover:text-rose-500"
           >
             로그아웃
@@ -119,10 +139,12 @@ export default function HomePage() {
             onNextMonth={() => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
             onToday={() => setCurrentDate(startOfMonth(new Date()))}
             onRegisterClick={() => router.push("/register")}
+            onSelectSubscription={setSelectedSubscription}
           />
 
           <div className="flex flex-col gap-5">
             <UpcomingPaymentsCard subscriptions={subscriptions} />
+            <TrialEndingCard subscriptions={subscriptions} />
           </div>
         </div>
       </main>
@@ -135,6 +157,42 @@ export default function HomePage() {
           }}
           onRegister={() => router.push("/register")}
         />
+      )}
+
+      {selectedSubscription && (
+        <SubscriptionDetailModal
+          subscription={selectedSubscription}
+          onClose={() => setSelectedSubscription(null)}
+          onUpdate={updateSubscription}
+          onCancel={cancelSubscription}
+        />
+      )}
+
+      {showMobileLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/40 px-6 backdrop-blur-sm md:hidden">
+          <div className="relative w-full max-w-xs animate-pop-in rounded-3xl bg-white p-7 text-center shadow-2xl">
+            <h2 className="text-base font-black tracking-tight text-navy-900">로그아웃 하시겠습니까?</h2>
+            <div className="mt-6 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowMobileLogoutConfirm(false)}
+                className="btn-secondary flex-1"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMobileLogoutConfirm(false);
+                  handleSignOut();
+                }}
+                className="flex-1 rounded-2xl bg-rose-500 px-5 py-3 text-sm font-bold text-white shadow-card transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                로그아웃
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

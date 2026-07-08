@@ -6,7 +6,7 @@ export interface SubscriptionPreset {
 }
 
 /**
- * 대한민국에서 가장 많이 사용하는 구독 서비스 30가지.
+ * 대한민국에서 가장 많이 사용하는 구독 서비스 50가지.
  * 사용자가 이름을 입력하면 이 목록과 비교해 가장 유사한 서비스를 추천한다.
  */
 export const KOREAN_SUBSCRIPTIONS: SubscriptionPreset[] = [
@@ -40,6 +40,26 @@ export const KOREAN_SUBSCRIPTIONS: SubscriptionPreset[] = [
   { name: "클래스101", iconLabel: "101", color: "#181818", category: "교육" },
   { name: "패스트캠퍼스", iconLabel: "FC", color: "#1B2A4E", category: "교육" },
   { name: "카카오톡 이모티콘 플러스", iconLabel: "K", color: "#FEE500", category: "기타" },
+  { name: "배달의민족 배민클럽", iconLabel: "배", color: "#2AC1BC", category: "멤버십" },
+  { name: "요기요 요기패스", iconLabel: "요", color: "#FA0050", category: "멤버십" },
+  { name: "마켓컬리 컬리멤버스", iconLabel: "컬", color: "#5F0080", category: "멤버십" },
+  { name: "신세계 유니버스 클럽", iconLabel: "신", color: "#111111", category: "멤버십" },
+  { name: "토스 프라임", iconLabel: "토", color: "#0064FF", category: "멤버십" },
+  { name: "아마존 프라임", iconLabel: "a", color: "#FF9900", category: "멤버십" },
+  { name: "펫프렌즈 멤버십", iconLabel: "펫", color: "#FF6B35", category: "멤버십" },
+  { name: "플레이스테이션 플러스", iconLabel: "PS", color: "#003791", category: "게임" },
+  { name: "엑스박스 게임패스", iconLabel: "X", color: "#107C10", category: "게임" },
+  { name: "닌텐도 스위치 온라인", iconLabel: "닌", color: "#E60012", category: "게임" },
+  { name: "유데미", iconLabel: "U", color: "#A435F0", category: "교육" },
+  { name: "인프런", iconLabel: "인", color: "#1273EB", category: "교육" },
+  { name: "링글", iconLabel: "R", color: "#1B2B4B", category: "교육" },
+  { name: "탈잉", iconLabel: "탈", color: "#4E3CFA", category: "교육" },
+  { name: "클로드 프로", iconLabel: "C", color: "#D97757", category: "AI" },
+  { name: "퍼플렉시티 프로", iconLabel: "P", color: "#20808D", category: "AI" },
+  { name: "제미나이 어드밴스", iconLabel: "G", color: "#4285F4", category: "AI" },
+  { name: "캔바 프로", iconLabel: "Ca", color: "#00C4CC", category: "생산성" },
+  { name: "피그마", iconLabel: "F", color: "#F24E1E", category: "생산성" },
+  { name: "퍼블리", iconLabel: "퍼", color: "#181818", category: "콘텐츠" },
 ];
 
 const DEFAULT_PRESET: Pick<SubscriptionPreset, "iconLabel" | "color"> = {

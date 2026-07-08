@@ -15,6 +15,7 @@ export function UpcomingPaymentsCard({ subscriptions }: { subscriptions: Subscri
   const upcoming = useMemo<UpcomingItem[]>(() => {
     const today = new Date();
     return subscriptions
+      .filter((sub) => sub.kind !== "trial")
       .map((sub) => {
         const date = getNextOccurrence(sub, today);
         if (!date) return null;

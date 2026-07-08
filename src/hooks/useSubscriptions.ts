@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { toISODate } from "@/lib/format";
 import type { NewSubscription, Subscription } from "@/types/subscription";
 
 export function useSubscriptions(userId: string | null | undefined) {
@@ -66,5 +67,29 @@ export function useSubscriptions(userId: string | null | undefined) {
     [userId, refresh]
   );
 
-  return { subscriptions, loading, error, refresh, addSubscription };
+  const updateSubscription = useCallback(
+    async (id: string, patch: Partial<Pick<Subscription, "price" | "cycle_count" | "cycle_unit">>) => {
+      const { error: updateError } = await supabase.from("subscriptions").update(patch).eq("id", id);
+      if (updateError) return { error: updateError.message };
+      await refresh();
+      return { error: null };
+    },
+    [refresh]
+  );
+
+  /** 하드 삭제 대신 취소 시점을 기록한다: 그 이후 결제일부터 캘린더에서 사라지고, 이전 데이터는 그대로 유지된다. */
+  const cancelSubscription = useCallback(
+    async (id: string) => {
+      const { error: cancelError } = await supabase
+        .from("subscriptions")
+        .update({ canceled_from: toISODate(new Date()) })
+        .eq("id", id);
+      if (cancelError) return { error: cancelError.message };
+      await refresh();
+      return { error: null };
+    },
+    [refresh]
+  );
+
+  return { subscriptions, loading, error, refresh, addSubscription, updateSubscription, cancelSubscription };
 }

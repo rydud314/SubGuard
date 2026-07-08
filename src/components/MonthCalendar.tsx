@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import type { Subscription } from "@/types/subscription";
 import { getOccurrenceDaysInMonth } from "@/lib/recurrence";
-import { formatMonthTitle, isSameDay } from "@/lib/format";
+import { formatMonthTitle, formatWon, isSameDay } from "@/lib/format";
 import { buildMonthGrid } from "@/lib/calendarGrid";
 
 const WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -15,6 +15,7 @@ interface MonthCalendarProps {
   onNextMonth: () => void;
   onToday: () => void;
   onRegisterClick: () => void;
+  onSelectSubscription: (sub: Subscription) => void;
 }
 
 export function MonthCalendar({
@@ -24,6 +25,7 @@ export function MonthCalendar({
   onNextMonth,
   onToday,
   onRegisterClick,
+  onSelectSubscription,
 }: MonthCalendarProps) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -116,17 +118,31 @@ export function MonthCalendar({
               </span>
               <div className="mt-1 flex flex-col gap-1">
                 {dayOccurrences.slice(0, 2).map(({ sub }, idx) => (
-                  <div
+                  <button
                     key={`${sub.id}-${idx}`}
-                    title={`${sub.name} · ${sub.price.toLocaleString("ko-KR")}원`}
-                    className="flex items-center gap-1 truncate rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm sm:text-[10px]"
+                    type="button"
+                    onClick={() => onSelectSubscription(sub)}
+                    className="group/chip relative flex items-center gap-1 truncate rounded-full px-1.5 py-0.5 text-left text-[9px] font-bold text-white shadow-sm transition-transform hover:scale-105 sm:text-[10px]"
                     style={{ backgroundColor: sub.color }}
                   >
                     <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-white/30 text-[8px] leading-none sm:h-3.5 sm:w-3.5">
                       {sub.icon_label}
                     </span>
                     <span className="truncate">{sub.name}</span>
-                  </div>
+
+                    <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-1.5 w-40 -translate-x-1/2 scale-95 rounded-xl bg-navy-900 p-2.5 text-left opacity-0 shadow-xl transition-all duration-150 group-hover/chip:scale-100 group-hover/chip:opacity-100">
+                      <span className="block text-[11px] font-bold text-white">{sub.name}</span>
+                      <span className="mt-1 block text-[10px] font-medium text-white/75">
+                        {formatWon(sub.price)}
+                      </span>
+                      <span className="block text-[10px] font-medium text-white/75">
+                        첫 결제 {sub.pay_date.replace(/-/g, ".")}
+                      </span>
+                      <span className="block text-[10px] font-medium text-white/75">
+                        {sub.cycle_count}회 / {sub.cycle_unit}
+                      </span>
+                    </span>
+                  </button>
                 ))}
                 {dayOccurrences.length > 2 && (
                   <span className="text-[9px] font-medium text-navy-400">
