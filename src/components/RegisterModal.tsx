@@ -10,7 +10,7 @@ interface RegisterModalProps {
 export function RegisterModal({ onClose, onRegister }: RegisterModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/40 px-6 backdrop-blur-sm">
-      <div className="relative w-full max-w-md animate-pop-in rounded-2xl bg-white p-8 text-center shadow-2xl">
+      <div className="relative w-full max-w-md animate-pop-in rounded-3xl bg-white p-8 text-center shadow-2xl">
         <button
           type="button"
           onClick={onClose}
@@ -26,7 +26,7 @@ export function RegisterModal({ onClose, onRegister }: RegisterModalProps) {
           <ShieldLogo className="h-14 w-14" />
         </div>
 
-        <h2 className="mt-4 text-lg font-bold text-navy-800">
+        <h2 className="mt-4 text-lg font-black tracking-tight text-navy-900">
           아직 등록된 구독 서비스가 없어요
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-navy-400">

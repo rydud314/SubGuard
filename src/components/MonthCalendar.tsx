@@ -104,9 +104,9 @@ export function MonthCalendar({
               }`}
             >
               <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold sm:text-xs ${
+                className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold sm:text-xs ${
                   isToday
-                    ? "bg-brand-gradient text-white"
+                    ? "bg-brand-gradient-deep text-white shadow-glow ring-2 ring-mint-200"
                     : inCurrentMonth
                       ? "text-navy-600"
                       : "text-navy-300"
@@ -119,10 +119,10 @@ export function MonthCalendar({
                   <div
                     key={`${sub.id}-${idx}`}
                     title={`${sub.name} · ${sub.price.toLocaleString("ko-KR")}원`}
-                    className="flex items-center gap-1 truncate rounded-md px-1 py-0.5 text-[9px] font-semibold text-white sm:text-[10px]"
+                    className="flex items-center gap-1 truncate rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm sm:text-[10px]"
                     style={{ backgroundColor: sub.color }}
                   >
-                    <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-sm bg-white/25 text-[8px] leading-none sm:h-3.5 sm:w-3.5">
+                    <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-white/30 text-[8px] leading-none sm:h-3.5 sm:w-3.5">
                       {sub.icon_label}
                     </span>
                     <span className="truncate">{sub.name}</span>

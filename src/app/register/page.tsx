@@ -106,7 +106,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden px-5 py-10">
+    <main className="bg-grain relative flex min-h-dvh items-center justify-center overflow-hidden bg-brand-diagonal px-5 py-10">
       <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 animate-blob rounded-full bg-mint-200/50 blur-3xl" />
       <div className="pointer-events-none absolute -right-16 bottom-0 h-80 w-80 animate-blob rounded-full bg-sky-500/15 blur-3xl [animation-delay:4s]" />
 
@@ -124,14 +124,14 @@ export default function RegisterPage() {
 
         <div className="flex items-center gap-2">
           <ShieldLogo className="h-8 w-8" />
-          <h1 className="text-lg font-extrabold text-navy-800 sm:text-xl">
+          <h1 className="text-lg font-black tracking-tight text-navy-900 sm:text-xl">
             새로운 구독 서비스 등록하기
           </h1>
         </div>
 
         <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-navy-50">
           <div
-            className="h-full rounded-full bg-brand-gradient transition-[width] duration-700 ease-out"
+            className="h-full rounded-full bg-brand-gradient-deep transition-[width] duration-700 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -144,7 +144,7 @@ export default function RegisterPage() {
             <div className="relative">
               {selectedPreset && (
                 <span
-                  className="absolute left-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-[10px] font-bold text-white"
+                  className="absolute left-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm"
                   style={{ backgroundColor: selectedPreset.color }}
                 >
                   {selectedPreset.iconLabel}
@@ -171,7 +171,7 @@ export default function RegisterPage() {
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-mint-50"
                     >
                       <span
-                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-bold text-white"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm"
                         style={{ backgroundColor: s.color }}
                       >
                         {s.iconLabel}
@@ -227,9 +227,9 @@ export default function RegisterPage() {
                     key={unit}
                     type="button"
                     onClick={() => setCycleUnit(unit)}
-                    className={`rounded-lg px-3.5 py-2 text-xs font-bold transition-all hover:scale-105 ${
+                    className={`rounded-xl px-3.5 py-2 text-xs font-bold transition-all hover:scale-105 ${
                       cycleUnit === unit
-                        ? "bg-brand-gradient text-white shadow-card"
+                        ? "bg-brand-gradient-deep text-white shadow-card"
                         : "bg-navy-50 text-navy-500 hover:bg-mint-50"
                     }`}
                   >

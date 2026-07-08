@@ -34,16 +34,17 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden px-6">
+    <main className="bg-grain relative flex min-h-dvh items-center justify-center overflow-hidden bg-brand-diagonal px-6">
       <div className="pointer-events-none absolute -left-20 top-0 h-72 w-72 animate-blob rounded-full bg-mint-200/60 blur-3xl" />
       <div className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 animate-blob rounded-full bg-sky-500/20 blur-3xl [animation-delay:4s]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/3 h-64 w-64 animate-blob rounded-full bg-violet-200/30 blur-3xl [animation-delay:2s]" />
 
       <div className="glass-card relative z-10 w-full max-w-md p-8 text-center animate-pop-in">
         <div className="flex flex-col items-center">
           <ShieldLogo className="h-14 w-14" />
           <BrandWordmark className="mt-3 text-3xl" />
         </div>
-        <h1 className="mt-6 text-lg font-bold text-navy-800">
+        <h1 className="mt-6 text-lg font-black tracking-tight text-navy-900">
           구글 계정으로 간편하게 시작하세요
         </h1>
         <p className="mt-2 text-sm text-navy-400">

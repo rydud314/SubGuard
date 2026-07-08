@@ -64,10 +64,10 @@ export default function OnboardingPage() {
   };
 
   return (
-    <main className="relative flex min-h-dvh flex-col items-center overflow-hidden px-6 py-14">
+    <main className="bg-grain relative flex min-h-dvh flex-col items-center overflow-hidden bg-brand-diagonal px-6 py-14">
       <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 animate-blob rounded-full bg-mint-200/60 blur-3xl" />
       <div className="pointer-events-none absolute -right-16 top-40 h-80 w-80 animate-blob rounded-full bg-sky-500/20 blur-3xl [animation-delay:3s]" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 animate-blob rounded-full bg-navy-100/70 blur-3xl [animation-delay:6s]" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 animate-blob rounded-full bg-violet-200/40 blur-3xl [animation-delay:6s]" />
 
       <div className="relative z-10 flex w-full max-w-md flex-col items-center text-center animate-fade-up">
         <ShieldLogo className="h-16 w-16" />
@@ -115,7 +115,7 @@ export default function OnboardingPage() {
       <div className="relative z-10 mt-10 grid w-full max-w-md grid-cols-4 gap-2 animate-fade-up [animation-delay:200ms]" style={{ opacity: 0 }}>
         {FEATURES.map((f) => (
           <div key={f.label} className="flex flex-col items-center gap-2 rounded-2xl bg-white/70 px-2 py-4 shadow-sm">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-gradient text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-gradient-deep text-white">
               {f.icon}
             </div>
             <p className="whitespace-pre-line text-[11px] font-semibold leading-tight text-navy-700">

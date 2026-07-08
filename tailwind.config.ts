@@ -55,12 +55,16 @@ const config: Config = {
       },
       backgroundImage: {
         "brand-gradient": "linear-gradient(135deg, #18CFC3 0%, #1AA7C8 100%)",
+        "brand-gradient-deep": "linear-gradient(135deg, #45DBC9 0%, #18CFC3 55%, #0E827B 100%)",
         "brand-radial":
-          "radial-gradient(120% 120% at 20% 0%, #EAFBF7 0%, #F5FCFF 45%, #E8F6FB 100%)",
+          "radial-gradient(120% 120% at 20% 0%, #EAFBF7 0%, #F1FBFE 42%, #ECEEFC 78%, #E8F6FB 100%)",
+        "brand-diagonal":
+          "linear-gradient(135deg, #E3FBF5 0%, #DDF4FF 45%, #ECE9FF 100%)",
       },
       boxShadow: {
-        soft: "0 10px 40px -12px rgba(19, 42, 76, 0.18)",
-        card: "0 8px 30px -8px rgba(24, 207, 195, 0.25)",
+        soft: "0 20px 60px -18px rgba(19, 42, 76, 0.22)",
+        card: "0 10px 32px -8px rgba(24, 207, 195, 0.3)",
+        glow: "0 8px 24px -4px rgba(24, 207, 195, 0.45)",
       },
       keyframes: {
         "fill-bar": {

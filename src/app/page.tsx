@@ -13,22 +13,44 @@ import { RegisterModal } from "@/components/RegisterModal";
 import { getNextOccurrence } from "@/lib/recurrence";
 import { daysUntil } from "@/lib/format";
 import { ShieldLogo, BrandWordmark } from "@/components/icons/ShieldLogo";
+import type { Subscription } from "@/types/subscription";
 
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+// 로컬 개발 서버(`npm run dev`)에서 로그인 없이 메인 화면 디자인을 바로 확인하기 위한 미리보기 전용 우회.
+// Vercel 프로덕션 빌드(next build)에서는 NODE_ENV가 "production"이라 항상 비활성화된다.
+const isPreviewMode = process.env.NODE_ENV !== "production";
+
+function buildPreviewSubscriptions(): Subscription[] {
+  const today = new Date();
+  const iso = (offsetDays: number) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + offsetDays);
+    return d.toISOString().slice(0, 10);
+  };
+  return [
+    { id: "preview-netflix", user_id: "preview", name: "넷플릭스", price: 17000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "N", color: "#E50914", created_at: "" },
+    { id: "preview-youtube", user_id: "preview", name: "유튜브 프리미엄", price: 14900, pay_date: iso(1), cycle_count: 1, cycle_unit: "월", icon_label: "▶", color: "#FF0000", created_at: "" },
+    { id: "preview-disney", user_id: "preview", name: "디즈니+", price: 9900, pay_date: iso(3), cycle_count: 1, cycle_unit: "월", icon_label: "D", color: "#113CCF", created_at: "" },
+    { id: "preview-spotify", user_id: "preview", name: "스포티파이", price: 10900, pay_date: iso(8), cycle_count: 1, cycle_unit: "월", icon_label: "S", color: "#1DB954", created_at: "" },
+    { id: "preview-watcha", user_id: "preview", name: "왓챠", price: 12900, pay_date: iso(-10), cycle_count: 1, cycle_unit: "월", icon_label: "W", color: "#FF0558", created_at: "" },
+  ];
+}
+
 export default function HomePage() {
   const router = useRouter();
   const { user, loading: sessionLoading } = useSession();
-  const { subscriptions, loading: subsLoading } = useSubscriptions(user?.id);
+  const { subscriptions: liveSubscriptions, loading: subsLoading } = useSubscriptions(user?.id);
+  const subscriptions = isPreviewMode && !user ? buildPreviewSubscriptions() : liveSubscriptions;
 
   const [currentDate, setCurrentDate] = useState(() => startOfMonth(new Date()));
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [dismissedModal, setDismissedModal] = useState(false);
 
   useEffect(() => {
-    if (sessionLoading) return;
+    if (sessionLoading || isPreviewMode) return;
     if (!user) {
       const onboarded =
         typeof window !== "undefined" && window.localStorage.getItem("subguard_onboarded");
@@ -57,7 +79,7 @@ export default function HomePage() {
     router.replace("/login");
   };
 
-  if (sessionLoading || !user) {
+  if (sessionLoading || (!user && !isPreviewMode)) {
     return (
       <main className="flex min-h-dvh flex-col items-center justify-center gap-3">
         <ShieldLogo className="h-10 w-10 animate-pulse" />

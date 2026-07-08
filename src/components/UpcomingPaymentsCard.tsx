@@ -27,7 +27,7 @@ export function UpcomingPaymentsCard({ subscriptions }: { subscriptions: Subscri
   return (
     <div className="glass-card overflow-hidden border-mint-200/70 bg-gradient-to-br from-mint-50 via-white to-sky-50 p-5">
       <div className="flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-gradient text-white">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-gradient-deep text-white shadow-glow">
           <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
             <path
               d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 13 6 9Z"
@@ -54,7 +54,7 @@ export function UpcomingPaymentsCard({ subscriptions }: { subscriptions: Subscri
             >
               <div className="flex min-w-0 items-center gap-2">
                 <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold text-white"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white shadow-sm"
                   style={{ backgroundColor: sub.color }}
                 >
                   {sub.icon_label}
@@ -66,10 +66,10 @@ export function UpcomingPaymentsCard({ subscriptions }: { subscriptions: Subscri
                   </p>
                 </div>
               </div>
-              <div className="flex shrink-0 flex-col items-end">
+              <div className="flex shrink-0 flex-col items-end gap-1">
                 <span className="text-xs font-bold text-navy-800">{formatWon(sub.price)}</span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  className={`pill-badge ${
                     diff === 0 ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-700"
                   }`}
                 >

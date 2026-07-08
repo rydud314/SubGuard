@@ -98,7 +98,7 @@ export function DatePickerField({ value, onChange, placeholder }: DatePickerFiel
                   }}
                   className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition-all hover:scale-110 ${
                     isSelected
-                      ? "bg-brand-gradient text-white shadow-card"
+                      ? "bg-brand-gradient-deep text-white shadow-card"
                       : inCurrentMonth
                         ? "text-navy-700 hover:bg-mint-50"
                         : "text-navy-200"

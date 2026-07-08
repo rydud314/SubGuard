@@ -27,7 +27,7 @@ function NavIcon({
       onClick={onClick}
       className={`group relative flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 ${
         active
-          ? "bg-brand-gradient text-white shadow-card"
+          ? "bg-brand-gradient-deep text-white shadow-card"
           : "text-navy-400 hover:bg-mint-50 hover:text-mint-600"
       }`}
     >
