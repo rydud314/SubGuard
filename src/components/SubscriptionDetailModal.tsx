@@ -33,10 +33,7 @@ export function SubscriptionDetailModal({
   const [deleting, setDeleting] = useState(false);
 
   const isTrialWithoutPay = subscription.kind === "trial" && subscription.trial_auto_pay === false;
-  const isTrialInProgress =
-    subscription.kind === "trial" &&
-    subscription.trial_auto_pay === true &&
-    new Date() < new Date(subscription.pay_date);
+  const isTrialInProgress = subscription.kind === "trial" && new Date() < new Date(subscription.pay_date);
 
   const trialPeriodDays = (() => {
     if (!isTrialWithoutPay) return null;

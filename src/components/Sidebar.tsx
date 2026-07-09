@@ -73,23 +73,6 @@ export function Sidebar({ onSignOut, account }: SidebarProps) {
             </svg>
           </NavIcon>
 
-          <button
-            type="button"
-            onClick={() => setShowLogoutConfirm(true)}
-            className="flex flex-col items-center gap-0.5 rounded-lg px-1 py-1 text-navy-400 transition-all duration-200 hover:scale-105 hover:text-rose-500"
-          >
-            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
-              <path
-                d="M15 17l5-5-5-5M20 12H9M12 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span className="text-[9px] font-semibold leading-none">로그아웃</span>
-          </button>
-
           {showAccountInfo && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowAccountInfo(false)} />
@@ -122,6 +105,28 @@ export function Sidebar({ onSignOut, account }: SidebarProps) {
                   {account?.name || "SubGuard 사용자"}
                 </h2>
                 <p className="mt-1 text-xs text-navy-400">{account?.email}</p>
+
+                <div className="mt-5 border-t border-navy-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAccountInfo(false);
+                      setShowLogoutConfirm(true);
+                    }}
+                    className="mx-auto flex flex-col items-center gap-1 text-navy-400 transition-all duration-200 hover:scale-105 hover:text-rose-500"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                      <path
+                        d="M15 17l5-5-5-5M20 12H9M12 19H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span className="text-[10px] font-semibold leading-none">로그아웃</span>
+                  </button>
+                </div>
               </div>
             </>
           )}

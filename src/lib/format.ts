@@ -15,10 +15,6 @@ export function parseNumberInput(raw: string): number {
   return digitsOnly ? Number(digitsOnly) : 0;
 }
 
-export function formatMonthTitle(date: Date): string {
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
-}
-
 export function toISODate(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
