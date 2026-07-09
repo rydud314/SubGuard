@@ -93,10 +93,13 @@ export default function HomePage() {
   }, [sessionLoading, user, router]);
 
   useEffect(() => {
+    // user가 아직 확정되기 전(로그인 직후 로딩 화면 단계)에는 useSubscriptions(undefined)가
+    // "구독 0개"로 잘못 판정할 수 있으므로, 실제 로그인 상태를 알기 전에는 판단하지 않는다.
+    if (sessionLoading || (!user && !isPreviewMode)) return;
     if (!subsLoading && subscriptions.length === 0 && !dismissedModal) {
       setShowRegisterModal(true);
     }
-  }, [subsLoading, subscriptions.length, dismissedModal]);
+  }, [sessionLoading, user, subsLoading, subscriptions.length, dismissedModal]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
