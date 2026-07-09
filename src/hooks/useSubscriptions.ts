@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { toISODate } from "@/lib/format";
-import { getNextOccurrence } from "@/lib/recurrence";
 import type { NewSubscription, Subscription } from "@/types/subscription";
 
 export function useSubscriptions(userId: string | null | undefined) {
@@ -70,21 +69,17 @@ export function useSubscriptions(userId: string | null | undefined) {
 
   /**
    * 결제 금액/주기 수정: 기존 행을 그대로 두면 과거에 표시됐던 결제 내역까지 새 값으로 바뀌어 버리므로,
-   * "다음 결제일"을 기준으로 기존 행은 그 날짜부터 취소하고, 그 날짜부터 시작하는 새 행을 만든다.
-   * 이렇게 하면 수정 이전 데이터는 그대로 유지되고, 수정 이후 데이터만 새 값을 반영한다.
+   * "사용자가 캘린더에서 클릭한 그 날짜"를 기준으로 기존 행은 그 날짜부터 취소하고, 그 날짜부터 시작하는
+   * 새 행을 만든다. 이렇게 하면 클릭한 날짜 이전 데이터는 그대로 유지되고, 그 날짜를 포함한 이후 데이터만
+   * 새 값을 반영한다.
    */
   const updateSubscription = useCallback(
-    async (sub: Subscription, patch: Partial<Pick<Subscription, "price" | "cycle_count" | "cycle_unit">>) => {
-      const next = getNextOccurrence(sub, new Date());
-
-      if (!next) {
-        const { error: updateError } = await supabase.from("subscriptions").update(patch).eq("id", sub.id);
-        if (updateError) return { error: updateError.message };
-        await refresh();
-        return { error: null };
-      }
-
-      const splitDate = toISODate(next);
+    async (
+      sub: Subscription,
+      occurrenceDate: Date,
+      patch: Partial<Pick<Subscription, "price" | "cycle_count" | "cycle_unit">>
+    ) => {
+      const splitDate = toISODate(occurrenceDate);
 
       const { error: cancelError } = await supabase
         .from("subscriptions")
@@ -114,13 +109,16 @@ export function useSubscriptions(userId: string | null | undefined) {
     [refresh]
   );
 
-  /** 하드 삭제 대신 취소 시점을 기록한다: 그 이후 결제일부터 캘린더에서 사라지고, 이전 데이터는 그대로 유지된다. */
+  /**
+   * 하드 삭제 대신 취소 시점을 기록한다: 클릭한 캘린더 날짜를 포함한 이후 결제일부터 캘린더에서
+   * 사라지고, 그 이전 데이터는 그대로 유지된다.
+   */
   const cancelSubscription = useCallback(
-    async (id: string) => {
+    async (sub: Subscription, occurrenceDate: Date) => {
       const { error: cancelError } = await supabase
         .from("subscriptions")
-        .update({ canceled_from: toISODate(new Date()) })
-        .eq("id", id);
+        .update({ canceled_from: toISODate(occurrenceDate) })
+        .eq("id", sub.id);
       if (cancelError) return { error: cancelError.message };
       await refresh();
       return { error: null };

@@ -2,16 +2,12 @@
 
 import { useMemo, useState } from "react";
 import type { Subscription } from "@/types/subscription";
-import { getOccurrenceDaysInMonth, getTrialRangeDaysInMonth } from "@/lib/recurrence";
+import { getOccurrenceDaysInMonth } from "@/lib/recurrence";
 import { formatWon, isSameDay } from "@/lib/format";
 import { buildMonthGrid } from "@/lib/calendarGrid";
 
 interface DayOccurrence {
   sub: Subscription;
-  isStart: boolean;
-  isEnd: boolean;
-  isRange: boolean;
-  showLabel: boolean;
 }
 
 const WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -28,7 +24,7 @@ interface MonthCalendarProps {
   onToday: () => void;
   onSelectMonth: (year: number, month: number) => void;
   onRegisterClick: () => void;
-  onSelectSubscription: (sub: Subscription) => void;
+  onSelectSubscription: (sub: Subscription, occurrenceDate: Date) => void;
 }
 
 export function MonthCalendar({
@@ -56,29 +52,10 @@ export function MonthCalendar({
     };
 
     for (const sub of subscriptions) {
-      if (sub.kind === "trial" && sub.trial_start_date) {
-        // 무료 체험: 시작일~종료일(또는 첫 결제일)까지 하나의 연속된 일정(바)으로 표시.
-        // 실제 시작일이 이전 달이라 이번 달에는 안 보이는 경우에도, 이번 달에 보이는 첫 날에는
-        // 라벨(아이콘+이름)을 표시해 어떤 구독인지 알아볼 수 있게 한다.
-        getTrialRangeDaysInMonth(sub, year, month).forEach(({ day, isStart, isEnd }, idx) => {
-          add(day, { sub, isStart, isEnd, isRange: true, showLabel: idx === 0 });
-        });
-
-        // 자동결제 체험은 첫 결제일이 지난 이후부터 일반 정기결제처럼 매달 반복된다.
-        // (첫 결제일이 속한 달은 위 구간 표시로 이미 커버되므로 중복 표시하지 않는다.)
-        if (sub.trial_auto_pay) {
-          const anchor = new Date(sub.pay_date);
-          const isAnchorMonth = anchor.getFullYear() === year && anchor.getMonth() === month;
-          if (!isAnchorMonth) {
-            for (const day of getOccurrenceDaysInMonth(sub, year, month)) {
-              add(day, { sub, isStart: true, isEnd: true, isRange: false, showLabel: true });
-            }
-          }
-        }
-      } else {
-        for (const day of getOccurrenceDaysInMonth(sub, year, month)) {
-          add(day, { sub, isStart: true, isEnd: true, isRange: false, showLabel: true });
-        }
+      // 무료 체험(자동결제 여부 상관없이)은 캘린더에 종료일(=pay_date)만 표시한다.
+      // 자동결제 체험은 종료일이 지나면 그 날짜를 기준으로 일반 정기결제처럼 매달 반복된다.
+      for (const day of getOccurrenceDaysInMonth(sub, year, month)) {
+        add(day, { sub });
       }
     }
     return map;
@@ -201,26 +178,18 @@ export function MonthCalendar({
                 {date.getDate()}
               </span>
               <div className="mt-1 flex flex-col gap-1">
-                {dayOccurrences.slice(0, 2).map(({ sub, isStart, isEnd, isRange, showLabel }, idx) => (
+                {dayOccurrences.slice(0, 2).map(({ sub }, idx) => (
                   <button
                     key={`${sub.id}-${idx}`}
                     type="button"
-                    onClick={() => onSelectSubscription(sub)}
-                    className={`group/chip relative flex items-center gap-1 py-0.5 text-left text-[9px] font-bold text-white shadow-sm transition-transform hover:scale-105 sm:text-[10px] ${
-                      isRange
-                        ? `h-3.5 w-full px-1.5 sm:h-4 ${isStart ? "rounded-l-full" : ""} ${isEnd ? "rounded-r-full" : ""}`
-                        : "truncate rounded-full px-1.5"
-                    }`}
+                    onClick={() => onSelectSubscription(sub, date)}
+                    className="group/chip relative flex items-center gap-1 truncate rounded-full px-1.5 py-0.5 text-left text-[9px] font-bold text-white shadow-sm transition-transform hover:scale-105 sm:text-[10px]"
                     style={{ backgroundColor: sub.color }}
                   >
-                    {showLabel && (
-                      <>
-                        <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-white/30 text-[8px] leading-none sm:h-3.5 sm:w-3.5">
-                          {sub.icon_label}
-                        </span>
-                        <span className="truncate">{sub.name}</span>
-                      </>
-                    )}
+                    <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-white/30 text-[8px] leading-none sm:h-3.5 sm:w-3.5">
+                      {sub.icon_label}
+                    </span>
+                    <span className="truncate">{sub.name}</span>
 
                     <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-1.5 w-40 -translate-x-1/2 scale-95 rounded-xl bg-navy-900 p-2.5 text-left opacity-0 shadow-xl transition-all duration-150 group-hover/chip:scale-100 group-hover/chip:opacity-100">
                       <span className="block text-[11px] font-bold text-white">{sub.name}</span>

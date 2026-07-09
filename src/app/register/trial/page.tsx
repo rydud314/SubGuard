@@ -245,7 +245,7 @@ export default function RegisterTrialPage() {
             </div>
           </div>
           {trialPeriodDays !== null && (
-            <p className="!-mt-3 text-[11px] font-semibold text-amber-600">
+            <p className="!-mt-3 animate-pop-in text-[11px] font-semibold text-amber-600">
               무료 체험 기간: {trialPeriodDays}일
             </p>
           )}

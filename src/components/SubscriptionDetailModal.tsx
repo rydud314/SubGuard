@@ -8,16 +8,19 @@ const CYCLE_UNITS: CycleUnit[] = ["주", "월", "년"];
 
 interface SubscriptionDetailModalProps {
   subscription: Subscription;
+  occurrenceDate: Date;
   onClose: () => void;
   onUpdate: (
     sub: Subscription,
+    occurrenceDate: Date,
     patch: Partial<Pick<Subscription, "price" | "cycle_count" | "cycle_unit">>
   ) => Promise<{ error: string | null }>;
-  onCancel: (id: string) => Promise<{ error: string | null }>;
+  onCancel: (sub: Subscription, occurrenceDate: Date) => Promise<{ error: string | null }>;
 }
 
 export function SubscriptionDetailModal({
   subscription,
+  occurrenceDate,
   onClose,
   onUpdate,
   onCancel,
@@ -32,11 +35,14 @@ export function SubscriptionDetailModal({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const isTrialWithoutPay = subscription.kind === "trial" && subscription.trial_auto_pay === false;
-  const isTrialInProgress = subscription.kind === "trial" && new Date() < new Date(subscription.pay_date);
+  const isTrial = subscription.kind === "trial";
+  const isTrialWithoutPay = isTrial && subscription.trial_auto_pay === false;
+  const isTrialInProgress = isTrial && new Date() < new Date(subscription.pay_date);
+  // 자동결제 체험은 종료일이 지나기 전까지만 무료체험 항목으로 표시하고, 지나면 정기 결제처럼 관리한다.
+  const showTrialFields = isTrialWithoutPay || (isTrial && subscription.trial_auto_pay === true && isTrialInProgress);
 
   const trialPeriodDays = (() => {
-    if (!isTrialWithoutPay || !subscription.trial_start_date) return null;
+    if (!showTrialFields || !subscription.trial_start_date) return null;
     const start = new Date(subscription.trial_start_date);
     const end = new Date(subscription.pay_date);
     const days = Math.round((end.getTime() - start.getTime()) / 86400000);
@@ -51,7 +57,7 @@ export function SubscriptionDetailModal({
       return;
     }
     setSaving(true);
-    const { error } = await onUpdate(subscription, {
+    const { error } = await onUpdate(subscription, occurrenceDate, {
       price,
       cycle_count: cycleCount,
       cycle_unit: cycleUnit,
@@ -66,7 +72,7 @@ export function SubscriptionDetailModal({
 
   const handleDelete = async () => {
     setDeleting(true);
-    const { error } = await onCancel(subscription.id);
+    const { error } = await onCancel(subscription, occurrenceDate);
     setDeleting(false);
     if (error) {
       setErrorMessage(`삭제에 실패했어요: ${error}`);
@@ -99,7 +105,7 @@ export function SubscriptionDetailModal({
           <div>
             <h2 className="text-lg font-black tracking-tight text-navy-900">{subscription.name}</h2>
             {isTrialInProgress && (
-              <span className="pill-badge mt-1 bg-amber-100 text-amber-700">무료 체험 중</span>
+              <span className="pill-badge mt-1 bg-amber-100 text-amber-700">현재 무료 체험 중</span>
             )}
           </div>
         </div>
@@ -122,9 +128,9 @@ export function SubscriptionDetailModal({
 
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-navy-400">
-              {isTrialWithoutPay ? "무료 체험 기간" : "결제 주기"}
+              {showTrialFields ? "무료 체험 기간" : "결제 주기"}
             </span>
-            {editing && !isTrialWithoutPay ? (
+            {editing && !showTrialFields ? (
               <div className="flex items-center gap-1.5">
                 <input
                   type="number"
@@ -148,7 +154,7 @@ export function SubscriptionDetailModal({
               </div>
             ) : (
               <span className="text-sm font-bold text-navy-800">
-                {isTrialWithoutPay
+                {showTrialFields
                   ? trialPeriodDays
                     ? `${trialPeriodDays}일`
                     : "-"
@@ -157,7 +163,7 @@ export function SubscriptionDetailModal({
             )}
           </div>
 
-          {isTrialWithoutPay && subscription.trial_start_date && (
+          {showTrialFields && subscription.trial_start_date && (
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-navy-400">무료 체험 시작일</span>
               <span className="text-sm font-bold text-navy-800">
@@ -168,7 +174,7 @@ export function SubscriptionDetailModal({
 
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-navy-400">
-              {isTrialWithoutPay ? "무료 체험 종료일" : "첫 결제 날짜"}
+              {showTrialFields ? "무료 체험 종료일" : "첫 결제 날짜"}
             </span>
             <span className="text-sm font-bold text-navy-800">{subscription.pay_date.replace(/-/g, ".")}</span>
           </div>
@@ -221,7 +227,7 @@ export function SubscriptionDetailModal({
         {confirmingDelete && (
           <div className="mt-3 animate-pop-in rounded-2xl border border-rose-200 bg-rose-50 p-4 text-center">
             <p className="text-xs font-semibold text-rose-600">
-              정말 삭제할까요? 오늘 이후 결제 일정부터 캘린더에서 사라져요.
+              정말 삭제할까요? 이 날짜를 포함한 이후 결제 일정부터 캘린더에서 사라져요.
             </p>
             <div className="mt-3 flex gap-2">
               <button

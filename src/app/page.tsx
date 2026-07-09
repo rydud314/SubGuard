@@ -66,7 +66,10 @@ export default function HomePage() {
   const [currentDate, setCurrentDate] = useState(() => startOfMonth(new Date()));
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [dismissedModal, setDismissedModal] = useState(false);
-  const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
+  const [selectedOccurrence, setSelectedOccurrence] = useState<{ sub: Subscription; date: Date } | null>(
+    null
+  );
+  const selectSubscription = (sub: Subscription, date: Date) => setSelectedOccurrence({ sub, date });
   const [showMobileLogoutConfirm, setShowMobileLogoutConfirm] = useState(false);
 
   const account = user
@@ -143,16 +146,16 @@ export default function HomePage() {
             onToday={() => setCurrentDate(startOfMonth(new Date()))}
             onSelectMonth={(y, m) => setCurrentDate(new Date(y, m, 1))}
             onRegisterClick={() => router.push("/register")}
-            onSelectSubscription={setSelectedSubscription}
+            onSelectSubscription={selectSubscription}
           />
 
           <div className="flex flex-col gap-5">
-            <UpcomingPaymentsCard subscriptions={subscriptions} onSelectSubscription={setSelectedSubscription} />
-            <TrialEndingCard subscriptions={subscriptions} onSelectSubscription={setSelectedSubscription} />
+            <UpcomingPaymentsCard subscriptions={subscriptions} onSelectSubscription={selectSubscription} />
+            <TrialEndingCard subscriptions={subscriptions} onSelectSubscription={selectSubscription} />
             <MonthlyCostCard
               subscriptions={subscriptions}
               currentDate={currentDate}
-              onSelectSubscription={setSelectedSubscription}
+              onSelectSubscription={selectSubscription}
             />
           </div>
         </div>
@@ -168,10 +171,11 @@ export default function HomePage() {
         />
       )}
 
-      {selectedSubscription && (
+      {selectedOccurrence && (
         <SubscriptionDetailModal
-          subscription={selectedSubscription}
-          onClose={() => setSelectedSubscription(null)}
+          subscription={selectedOccurrence.sub}
+          occurrenceDate={selectedOccurrence.date}
+          onClose={() => setSelectedOccurrence(null)}
           onUpdate={updateSubscription}
           onCancel={cancelSubscription}
         />

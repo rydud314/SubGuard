@@ -16,7 +16,7 @@ export function UpcomingPaymentsCard({
   onSelectSubscription,
 }: {
   subscriptions: Subscription[];
-  onSelectSubscription: (sub: Subscription) => void;
+  onSelectSubscription: (sub: Subscription, occurrenceDate: Date) => void;
 }) {
   const upcoming = useMemo<UpcomingItem[]>(() => {
     const today = new Date();
@@ -59,7 +59,7 @@ export function UpcomingPaymentsCard({
             <li key={sub.id}>
               <button
                 type="button"
-                onClick={() => onSelectSubscription(sub)}
+                onClick={() => onSelectSubscription(sub, date)}
                 className="flex w-full items-center justify-between gap-2 rounded-xl bg-white/80 px-3 py-2.5 text-left shadow-sm transition-all hover:scale-[1.02]"
               >
                 <div className="flex min-w-0 items-center gap-2">

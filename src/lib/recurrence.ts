@@ -70,46 +70,6 @@ export function getOccurrenceDaysInMonth(
   return results;
 }
 
-export interface TrialRangeDay {
-  day: number;
-  isStart: boolean;
-  isEnd: boolean;
-}
-
-/**
- * 무료 체험 구간(시작일~종료일/첫 결제일)이 해당 연/월과 겹치는 날짜들을 반환한다.
- * 캘린더에 하나의 연속된 일정(바)으로 표시하기 위해 각 날짜가 구간의 시작/끝인지 여부도 함께 반환한다.
- */
-export function getTrialRangeDaysInMonth(
-  sub: Pick<Subscription, "kind" | "trial_start_date" | "pay_date" | "canceled_from">,
-  year: number,
-  month: number
-): TrialRangeDay[] {
-  if (sub.kind !== "trial" || !sub.trial_start_date) return [];
-
-  const start = parseAnchor(sub.trial_start_date);
-  const end = sub.canceled_from
-    ? new Date(Math.min(parseAnchor(sub.pay_date).getTime(), parseAnchor(sub.canceled_from).getTime() - 86400000))
-    : parseAnchor(sub.pay_date);
-  if (end.getTime() < start.getTime()) return [];
-
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const results: TrialRangeDay[] = [];
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    const current = new Date(year, month, day);
-    if (current.getTime() >= start.getTime() && current.getTime() <= end.getTime()) {
-      results.push({
-        day,
-        isStart: current.getTime() === start.getTime(),
-        isEnd: current.getTime() === end.getTime(),
-      });
-    }
-  }
-
-  return results;
-}
-
 /** 오늘(from) 이후 가장 가까운 결제일을 계산한다. 최대 24개월 앞까지 탐색. */
 export function getNextOccurrence(sub: RecurrenceInput, from: Date = new Date()): Date | null {
   const start = new Date(from.getFullYear(), from.getMonth(), 1);

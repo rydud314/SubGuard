@@ -17,7 +17,7 @@ export function MonthlyCostCard({
 }: {
   subscriptions: Subscription[];
   currentDate: Date;
-  onSelectSubscription: (sub: Subscription) => void;
+  onSelectSubscription: (sub: Subscription, occurrenceDate: Date) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -82,7 +82,9 @@ export function MonthlyCostCard({
               <li key={`${sub.id}-${idx}`}>
                 <button
                   type="button"
-                  onClick={() => onSelectSubscription(sub)}
+                  onClick={() =>
+                    onSelectSubscription(sub, new Date(currentDate.getFullYear(), currentDate.getMonth(), day))
+                  }
                   className="flex w-full items-center justify-between gap-2 rounded-xl bg-white/80 px-3 py-2.5 text-left shadow-sm transition-all hover:scale-[1.02]"
                 >
                   <div className="flex min-w-0 items-center gap-2">
