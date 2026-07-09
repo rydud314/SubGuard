@@ -20,8 +20,9 @@ export function UpcomingPaymentsCard({
 }) {
   const upcoming = useMemo<UpcomingItem[]>(() => {
     const today = new Date();
-    // 정기 결제, 무료 체험 모두 포함
+    // 정기 결제, 무료 체험 모두 포함. 단, 결제 금액이 0원인 구독 서비스는 제외.
     return subscriptions
+      .filter((sub) => sub.price > 0)
       .map((sub) => {
         const date = getNextOccurrence(sub, today);
         if (!date) return null;

@@ -32,7 +32,7 @@ function NavIcon({
       onClick={onClick}
       className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 ${
         active
-          ? "bg-brand-gradient-deep text-white shadow-card"
+          ? "bg-navy-800 text-white shadow-card"
           : "text-navy-400 hover:bg-mint-50 hover:text-mint-600"
       }`}
     >
@@ -60,8 +60,8 @@ export function Sidebar({ onSignOut, account }: SidebarProps) {
           </svg>
         </NavIcon>
 
-        <div className="flex flex-col items-center gap-1">
-          <NavIcon label="설정" onClick={() => setShowAccountInfo(true)}>
+        <div className="relative flex flex-col items-center gap-1">
+          <NavIcon label="설정" active={showAccountInfo} onClick={() => setShowAccountInfo((v) => !v)}>
             <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
               <circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.8" />
               <path
@@ -89,51 +89,44 @@ export function Sidebar({ onSignOut, account }: SidebarProps) {
             </svg>
             <span className="text-[9px] font-semibold leading-none">로그아웃</span>
           </button>
+
+          {showAccountInfo && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowAccountInfo(false)} />
+              <div className="absolute left-full top-0 z-50 ml-3 w-72 animate-pop-in rounded-3xl bg-white p-6 text-center shadow-2xl ring-1 ring-navy-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAccountInfo(false)}
+                  aria-label="닫기"
+                  className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-navy-400 transition-all hover:scale-105 hover:bg-navy-50 hover:text-navy-700"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">
+                    <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </button>
+
+                {account?.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={account.avatarUrl}
+                    alt=""
+                    className="mx-auto h-16 w-16 rounded-full object-cover shadow-card"
+                  />
+                ) : (
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-navy-800 text-xl font-black text-white shadow-card">
+                    {(account?.name ?? account?.email ?? "S").charAt(0).toUpperCase()}
+                  </div>
+                )}
+
+                <h2 className="mt-4 text-base font-black tracking-tight text-navy-900">
+                  {account?.name || "SubGuard 사용자"}
+                </h2>
+                <p className="mt-1 text-xs text-navy-400">{account?.email}</p>
+              </div>
+            </>
+          )}
         </div>
       </nav>
-
-      {showAccountInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/40 px-6 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg animate-pop-in rounded-3xl bg-white p-8 text-center shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setShowAccountInfo(false)}
-              aria-label="닫기"
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-navy-400 transition-all hover:scale-105 hover:bg-navy-50 hover:text-navy-700"
-            >
-              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
-                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </button>
-
-            {account?.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={account.avatarUrl}
-                alt=""
-                className="mx-auto h-20 w-20 rounded-full object-cover shadow-card"
-              />
-            ) : (
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-gradient-deep text-2xl font-black text-white shadow-card">
-                {(account?.name ?? account?.email ?? "S").charAt(0).toUpperCase()}
-              </div>
-            )}
-
-            <h2 className="mt-5 text-lg font-black tracking-tight text-navy-900">
-              {account?.name || "SubGuard 사용자"}
-            </h2>
-            <p className="mt-1 text-sm text-navy-400">{account?.email}</p>
-
-            <button
-              type="button"
-              onClick={() => setShowAccountInfo(false)}
-              className="btn-secondary mt-7 w-full"
-            >
-              닫기
-            </button>
-          </div>
-        </div>
-      )}
 
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/40 px-6 backdrop-blur-sm">

@@ -33,6 +33,18 @@ export function SubscriptionDetailModal({
   const [deleting, setDeleting] = useState(false);
 
   const isTrialWithoutPay = subscription.kind === "trial" && subscription.trial_auto_pay === false;
+  const isTrialInProgress =
+    subscription.kind === "trial" &&
+    subscription.trial_auto_pay === true &&
+    new Date() < new Date(subscription.pay_date);
+
+  const trialPeriodDays = (() => {
+    if (!isTrialWithoutPay) return null;
+    const created = new Date(subscription.created_at);
+    const end = new Date(subscription.pay_date);
+    const days = Math.round((end.getTime() - created.getTime()) / 86400000);
+    return Number.isFinite(days) && days > 0 ? days : null;
+  })();
 
   const handleSave = async () => {
     setErrorMessage(null);
@@ -87,7 +99,12 @@ export function SubscriptionDetailModal({
           >
             {subscription.icon_label}
           </span>
-          <h2 className="text-lg font-black tracking-tight text-navy-900">{subscription.name}</h2>
+          <div>
+            <h2 className="text-lg font-black tracking-tight text-navy-900">{subscription.name}</h2>
+            {isTrialInProgress && (
+              <span className="pill-badge mt-1 bg-amber-100 text-amber-700">무료 체험 중</span>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 space-y-3 rounded-2xl bg-navy-50/60 p-4">
@@ -107,7 +124,9 @@ export function SubscriptionDetailModal({
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-navy-400">결제 주기</span>
+            <span className="text-xs font-semibold text-navy-400">
+              {isTrialWithoutPay ? "무료 체험 기간" : "결제 주기"}
+            </span>
             {editing && !isTrialWithoutPay ? (
               <div className="flex items-center gap-1.5">
                 <input
@@ -132,7 +151,11 @@ export function SubscriptionDetailModal({
               </div>
             ) : (
               <span className="text-sm font-bold text-navy-800">
-                {isTrialWithoutPay ? "1회 (반복 없음)" : `${subscription.cycle_count}회 / ${subscription.cycle_unit}`}
+                {isTrialWithoutPay
+                  ? trialPeriodDays
+                    ? `${trialPeriodDays}일`
+                    : "-"
+                  : `${subscription.cycle_count}회 / ${subscription.cycle_unit}`}
               </span>
             )}
           </div>

@@ -19,6 +19,17 @@ function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+function firstNameOf(account: { name: string; email: string; firstName?: string } | null): string {
+  if (!account) return "회원";
+  if (account.firstName?.trim()) return account.firstName.trim();
+  const raw = account.name?.trim();
+  if (raw) {
+    const parts = raw.split(/\s+/);
+    return parts.length > 1 ? parts[0] : raw;
+  }
+  return account.email?.split("@")[0] || "회원";
+}
+
 // 로컬 개발 서버(`npm run dev`)에서 로그인 없이 메인 화면 디자인을 바로 확인하기 위한 미리보기 전용 우회.
 // Vercel 프로덕션 빌드(next build)에서는 NODE_ENV가 "production"이라 항상 비활성화된다.
 const isPreviewMode = process.env.NODE_ENV !== "production";
@@ -36,7 +47,8 @@ function buildPreviewSubscriptions(): Subscription[] {
     { id: "preview-disney", user_id: "preview", name: "디즈니+", price: 9900, pay_date: iso(3), cycle_count: 1, cycle_unit: "월", icon_label: "D", color: "#113CCF", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
     { id: "preview-spotify", user_id: "preview", name: "스포티파이", price: 10900, pay_date: iso(8), cycle_count: 1, cycle_unit: "월", icon_label: "S", color: "#1DB954", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
     { id: "preview-watcha", user_id: "preview", name: "왓챠", price: 12900, pay_date: iso(-10), cycle_count: 1, cycle_unit: "월", icon_label: "W", color: "#FF0558", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
-    { id: "preview-chatgpt-trial", user_id: "preview", name: "챗GPT 플러스", price: 22000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "AI", color: "#10A37F", created_at: "", kind: "trial", trial_auto_pay: true, canceled_from: null },
+    { id: "preview-chatgpt-trial", user_id: "preview", name: "챗GPT 플러스", price: 22000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "AI", color: "#10A37F", created_at: today.toISOString(), kind: "trial", trial_auto_pay: true, canceled_from: null },
+    { id: "preview-notion-trial", user_id: "preview", name: "노션", price: 0, pay_date: iso(20), cycle_count: 1, cycle_unit: "월", icon_label: "N", color: "#111111", created_at: new Date(today.getTime() - 10 * 86400000).toISOString(), kind: "trial", trial_auto_pay: false, canceled_from: null },
   ];
 }
 
@@ -61,10 +73,11 @@ export default function HomePage() {
     ? {
         email: user.email ?? "",
         name: (user.user_metadata?.full_name as string | undefined) ?? (user.user_metadata?.name as string | undefined) ?? "",
+        firstName: user.user_metadata?.given_name as string | undefined,
         avatarUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
       }
     : isPreviewMode
-      ? { email: "preview@subguard.app", name: "미리보기 사용자", avatarUrl: null }
+      ? { email: "preview@subguard.app", name: "미리보기", firstName: undefined, avatarUrl: null }
       : null;
 
   useEffect(() => {
@@ -117,7 +130,7 @@ export default function HomePage() {
 
         <div className="mb-6">
           <h1 className="text-2xl font-black tracking-tight text-navy-900 sm:text-3xl">
-            이번 달 구독서비스 관리
+            {firstNameOf(account)}님의 구독 서비스 관리
           </h1>
         </div>
 
@@ -128,18 +141,19 @@ export default function HomePage() {
             onPrevMonth={() => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
             onNextMonth={() => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
             onToday={() => setCurrentDate(startOfMonth(new Date()))}
+            onSelectMonth={(y, m) => setCurrentDate(new Date(y, m, 1))}
             onRegisterClick={() => router.push("/register")}
             onSelectSubscription={setSelectedSubscription}
           />
 
           <div className="flex flex-col gap-5">
+            <UpcomingPaymentsCard subscriptions={subscriptions} onSelectSubscription={setSelectedSubscription} />
+            <TrialEndingCard subscriptions={subscriptions} onSelectSubscription={setSelectedSubscription} />
             <MonthlyCostCard
               subscriptions={subscriptions}
               currentDate={currentDate}
               onSelectSubscription={setSelectedSubscription}
             />
-            <UpcomingPaymentsCard subscriptions={subscriptions} onSelectSubscription={setSelectedSubscription} />
-            <TrialEndingCard subscriptions={subscriptions} onSelectSubscription={setSelectedSubscription} />
           </div>
         </div>
       </main>
