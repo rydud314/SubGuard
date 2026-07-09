@@ -11,7 +11,13 @@ interface TrialItem {
   diff: number;
 }
 
-export function TrialEndingCard({ subscriptions }: { subscriptions: Subscription[] }) {
+export function TrialEndingCard({
+  subscriptions,
+  onSelectSubscription,
+}: {
+  subscriptions: Subscription[];
+  onSelectSubscription: (sub: Subscription) => void;
+}) {
   const ending = useMemo<TrialItem[]>(() => {
     const today = new Date();
     return subscriptions
@@ -46,33 +52,36 @@ export function TrialEndingCard({ subscriptions }: { subscriptions: Subscription
 
       <ul className="mt-4 space-y-2">
         {ending.map(({ sub, date, diff }) => (
-          <li
-            key={sub.id}
-            className="flex items-center justify-between gap-2 rounded-xl bg-white/80 px-3 py-2.5 shadow-sm transition-all hover:scale-[1.02]"
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              <span
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white shadow-sm"
-                style={{ backgroundColor: sub.color }}
-              >
-                {sub.icon_label}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-navy-800">{sub.name}</p>
-                <p className="text-[11px] text-navy-400">
-                  {date.getMonth() + 1}월 {date.getDate()}일{" "}
-                  {sub.trial_auto_pay ? "자동 결제 예정" : "체험 종료"}
-                </p>
+          <li key={sub.id}>
+            <button
+              type="button"
+              onClick={() => onSelectSubscription(sub)}
+              className="flex w-full items-center justify-between gap-2 rounded-xl bg-white/80 px-3 py-2.5 text-left shadow-sm transition-all hover:scale-[1.02]"
+            >
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white shadow-sm"
+                  style={{ backgroundColor: sub.color }}
+                >
+                  {sub.icon_label}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold text-navy-800">{sub.name}</p>
+                  <p className="text-[11px] text-navy-400">
+                    {date.getMonth() + 1}월 {date.getDate()}일{" "}
+                    {sub.trial_auto_pay ? "자동 결제 예정" : "무료 체험 종료"}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="flex shrink-0 flex-col items-end gap-1">
-              {sub.trial_auto_pay && (
-                <span className="text-xs font-bold text-navy-800">{formatWon(sub.price)}</span>
-              )}
-              <span className="pill-badge bg-rose-100 text-rose-600">
-                {diff === 0 ? "오늘 종료" : `D-${diff}`}
-              </span>
-            </div>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                {sub.trial_auto_pay && (
+                  <span className="text-xs font-bold text-navy-800">{formatWon(sub.price)}</span>
+                )}
+                <span className="pill-badge bg-rose-100 text-rose-600">
+                  {diff === 0 ? "오늘 종료" : `D-${diff}`}
+                </span>
+              </div>
+            </button>
           </li>
         ))}
       </ul>

@@ -1,19 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/hooks/useSession";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { supabase } from "@/lib/supabase/client";
 import { Sidebar } from "@/components/Sidebar";
 import { MonthCalendar } from "@/components/MonthCalendar";
-import { MonthlyCostSummary } from "@/components/MonthlyCostSummary";
+import { MonthlyCostCard } from "@/components/MonthlyCostCard";
 import { UpcomingPaymentsCard } from "@/components/UpcomingPaymentsCard";
 import { TrialEndingCard } from "@/components/TrialEndingCard";
 import { RegisterModal } from "@/components/RegisterModal";
 import { SubscriptionDetailModal } from "@/components/SubscriptionDetailModal";
-import { getNextOccurrence } from "@/lib/recurrence";
-import { daysUntil } from "@/lib/format";
 import { ShieldLogo, BrandWordmark } from "@/components/icons/ShieldLogo";
 import type { Subscription } from "@/types/subscription";
 
@@ -84,16 +82,6 @@ export default function HomePage() {
     }
   }, [subsLoading, subscriptions.length, dismissedModal]);
 
-  const upcomingCount = useMemo(() => {
-    const today = new Date();
-    return subscriptions.filter((sub) => {
-      const next = getNextOccurrence(sub, today);
-      if (!next) return false;
-      const diff = daysUntil(next, today);
-      return diff >= 0 && diff <= 3;
-    }).length;
-  }, [subscriptions]);
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.replace("/login");
@@ -110,7 +98,7 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-dvh">
-      <Sidebar upcomingCount={upcomingCount} onSignOut={handleSignOut} account={account} />
+      <Sidebar onSignOut={handleSignOut} account={account} />
 
       <main className="flex-1 px-5 py-6 sm:px-8 sm:py-8">
         <header className="mb-6 flex items-center justify-between md:hidden">
@@ -128,7 +116,9 @@ export default function HomePage() {
         </header>
 
         <div className="mb-6">
-          <MonthlyCostSummary subscriptions={subscriptions} currentDate={currentDate} />
+          <h1 className="text-2xl font-black tracking-tight text-navy-900 sm:text-3xl">
+            이번 달 구독서비스 관리
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
@@ -143,8 +133,13 @@ export default function HomePage() {
           />
 
           <div className="flex flex-col gap-5">
-            <UpcomingPaymentsCard subscriptions={subscriptions} />
-            <TrialEndingCard subscriptions={subscriptions} />
+            <MonthlyCostCard
+              subscriptions={subscriptions}
+              currentDate={currentDate}
+              onSelectSubscription={setSelectedSubscription}
+            />
+            <UpcomingPaymentsCard subscriptions={subscriptions} onSelectSubscription={setSelectedSubscription} />
+            <TrialEndingCard subscriptions={subscriptions} onSelectSubscription={setSelectedSubscription} />
           </div>
         </div>
       </main>

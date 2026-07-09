@@ -10,7 +10,7 @@ interface SubscriptionDetailModalProps {
   subscription: Subscription;
   onClose: () => void;
   onUpdate: (
-    id: string,
+    sub: Subscription,
     patch: Partial<Pick<Subscription, "price" | "cycle_count" | "cycle_unit">>
   ) => Promise<{ error: string | null }>;
   onCancel: (id: string) => Promise<{ error: string | null }>;
@@ -42,7 +42,7 @@ export function SubscriptionDetailModal({
       return;
     }
     setSaving(true);
-    const { error } = await onUpdate(subscription.id, {
+    const { error } = await onUpdate(subscription, {
       price,
       cycle_count: cycleCount,
       cycle_unit: cycleUnit,
@@ -138,7 +138,9 @@ export function SubscriptionDetailModal({
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-navy-400">첫 결제 날짜</span>
+            <span className="text-xs font-semibold text-navy-400">
+              {isTrialWithoutPay ? "무료 체험 종료일" : "첫 결제 날짜"}
+            </span>
             <span className="text-sm font-bold text-navy-800">{subscription.pay_date.replace(/-/g, ".")}</span>
           </div>
         </div>

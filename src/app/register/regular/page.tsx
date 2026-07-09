@@ -160,6 +160,7 @@ export default function RegisterRegularPage() {
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 placeholder="구독서비스 이름을 입력하세요."
                 className={`input-field ${selectedPreset ? "pl-11" : ""}`}
                 autoComplete="off"

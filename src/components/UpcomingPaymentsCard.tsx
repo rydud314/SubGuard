@@ -11,11 +11,17 @@ interface UpcomingItem {
   diff: number;
 }
 
-export function UpcomingPaymentsCard({ subscriptions }: { subscriptions: Subscription[] }) {
+export function UpcomingPaymentsCard({
+  subscriptions,
+  onSelectSubscription,
+}: {
+  subscriptions: Subscription[];
+  onSelectSubscription: (sub: Subscription) => void;
+}) {
   const upcoming = useMemo<UpcomingItem[]>(() => {
     const today = new Date();
+    // 정기 결제, 무료 체험 모두 포함
     return subscriptions
-      .filter((sub) => sub.kind !== "trial")
       .map((sub) => {
         const date = getNextOccurrence(sub, today);
         if (!date) return null;
@@ -49,34 +55,37 @@ export function UpcomingPaymentsCard({ subscriptions }: { subscriptions: Subscri
       ) : (
         <ul className="mt-4 space-y-2">
           {upcoming.map(({ sub, date, diff }) => (
-            <li
-              key={sub.id}
-              className="flex items-center justify-between gap-2 rounded-xl bg-white/80 px-3 py-2.5 shadow-sm transition-all hover:scale-[1.02]"
-            >
-              <div className="flex min-w-0 items-center gap-2">
-                <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white shadow-sm"
-                  style={{ backgroundColor: sub.color }}
-                >
-                  {sub.icon_label}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold text-navy-800">{sub.name}</p>
-                  <p className="text-[11px] text-navy-400">
-                    {date.getMonth() + 1}월 {date.getDate()}일
-                  </p>
+            <li key={sub.id}>
+              <button
+                type="button"
+                onClick={() => onSelectSubscription(sub)}
+                className="flex w-full items-center justify-between gap-2 rounded-xl bg-white/80 px-3 py-2.5 text-left shadow-sm transition-all hover:scale-[1.02]"
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  <span
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white shadow-sm"
+                    style={{ backgroundColor: sub.color }}
+                  >
+                    {sub.icon_label}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-semibold text-navy-800">{sub.name}</p>
+                    <p className="text-[11px] text-navy-400">
+                      {date.getMonth() + 1}월 {date.getDate()}일
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                <span className="text-xs font-bold text-navy-800">{formatWon(sub.price)}</span>
-                <span
-                  className={`pill-badge ${
-                    diff === 0 ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-700"
-                  }`}
-                >
-                  {diff === 0 ? "오늘 결제" : `D-${diff}`}
-                </span>
-              </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <span className="text-xs font-bold text-navy-800">{formatWon(sub.price)}</span>
+                  <span
+                    className={`pill-badge ${
+                      diff === 0 ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {diff === 0 ? "오늘 결제" : `D-${diff}`}
+                  </span>
+                </div>
+              </button>
             </li>
           ))}
         </ul>
