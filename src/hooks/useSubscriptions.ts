@@ -10,6 +10,16 @@ export function useSubscriptions(userId: string | null | undefined) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // userId가 바뀌는 순간(예: 로그인 완료로 undefined -> 실제 id) 렌더링 중에 즉시 loading을 true로
+  // 되돌린다. 이렇게 하지 않으면, 로그인 직후 "이전 사용자(없음)의 빈 결과"가 아직 setLoading(false)로
+  // 남아있는 한 틱 동안, 화면(page.tsx)이 이를 "이번 사용자도 구독이 없다"로 잘못 읽어
+  // 구독 등록 팝업을 오작동시키는 경합이 생긴다.
+  const [trackedUserId, setTrackedUserId] = useState(userId);
+  if (userId !== trackedUserId) {
+    setTrackedUserId(userId);
+    setLoading(true);
+  }
+
   const refresh = useCallback(async () => {
     if (!userId) {
       setSubscriptions([]);
