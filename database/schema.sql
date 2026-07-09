@@ -16,7 +16,10 @@ create table if not exists public.subscriptions (
   kind text not null default 'regular',
   trial_auto_pay boolean,
   trial_start_date date,
-  canceled_from date
+  canceled_from date,
+  notify_enabled boolean not null default true,
+  notified_3d_for date,
+  notified_1d_for date
 );
 
 -- 이미 만들어진 테이블에 새 컬럼을 추가해야 하는 경우(마이그레이션)에도 안전하게 실행된다.
@@ -24,6 +27,10 @@ alter table public.subscriptions add column if not exists kind text not null def
 alter table public.subscriptions add column if not exists trial_auto_pay boolean;
 alter table public.subscriptions add column if not exists trial_start_date date;
 alter table public.subscriptions add column if not exists canceled_from date;
+alter table public.subscriptions add column if not exists notify_enabled boolean not null default true;
+-- 결제일 3일 전/1일 전 이메일 알림을 이미 보낸 결제 회차(날짜)를 기록해, 같은 회차에 중복 발송되지 않도록 한다.
+alter table public.subscriptions add column if not exists notified_3d_for date;
+alter table public.subscriptions add column if not exists notified_1d_for date;
 
 alter table public.subscriptions drop constraint if exists subscriptions_kind_check;
 alter table public.subscriptions add constraint subscriptions_kind_check check (kind in ('trial', 'regular'));
