@@ -19,7 +19,21 @@ npm run dev
    - `http://localhost:3000/auth/callback` (로컬 개발)
    - 배포 도메인의 `/auth/callback` (배포 시)
 
-Supabase 프로젝트 URL과 Publishable Key는 별도 환경 변수 파일 없이 [`src/lib/supabase/client.ts`](src/lib/supabase/client.ts)에 직접 하드코딩되어 있습니다 (`docs/supabase-info.md` 값 기준).
+Supabase 프로젝트 URL과 Publishable Key는 별도 환경 변수 파일 없이 [`src/lib/supabase/client.ts`](src/lib/supabase/client.ts)에 직접 하드코딩되어 있습니다 (`docs/supabase-info.md` 값 기준). 이 키는 공개되어도 안전한 anon 키라서 하드코딩했습니다.
+
+## 결제일 이메일 알림 설정 (필수 — 알림 기능을 쓰려면)
+
+구독 서비스 상세 팝업에서 "결제 알림"을 켜두면, 결제(또는 무료체험 종료)일 3일 전과 1일 전에 이메일로 한 번씩 알려줍니다. 이 기능은 Vercel Cron이 매일 서버에서 실행하는 `/api/cron/notify`가 처리합니다.
+
+⚠️ 아래 3개는 **진짜 비밀값**이라 (누구나 봐도 되는 Supabase anon 키와 다르게) 절대 소스코드에 하드코딩하지 않았습니다. **Vercel 프로젝트 설정 > Environment Variables**에 등록해야 알림이 실제로 발송됩니다.
+
+| 이름 | 값을 구하는 방법 |
+|---|---|
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 대시보드 > Project Settings > API > `service_role` 키(비밀) 복사 |
+| `RESEND_API_KEY` | [resend.com](https://resend.com) 가입 후 API Keys 메뉴에서 발급 (무료 플랜으로 충분) |
+| `CRON_SECRET` | 아무 임의의 긴 문자열을 직접 정해서 입력 (Vercel이 Cron 호출 시 같은 값을 자동으로 `Authorization` 헤더에 넣어 인증함) |
+
+등록 후 재배포하면 [`vercel.json`](vercel.json)에 설정된 스케줄(매일 UTC 00:00 = 한국시간 오전 9시)대로 자동 발송됩니다. 로컬 개발(`npm run dev`)에서는 이 환경 변수가 없어도 나머지 기능은 그대로 동작하고, 알림 발송만 비활성 상태로 남습니다.
 
 ## 폴더 구조
 
@@ -34,11 +48,13 @@ src/
     register/trial/       # 무료 체험 등록 화면
     register/regular/     # 정기 구독 등록 화면
     register/complete/   # 등록 완료 화면
+    api/cron/notify/     # 매일 실행되는 결제일 이메일 알림 발송 (Vercel Cron)
   components/            # Sidebar, MonthCalendar, RegisterModal, SubscriptionDetailModal 등
   data/koreanSubscriptions.ts  # 국내 인기 구독서비스 50종 + 유사도 추천 로직
   hooks/                 # useSession, useSubscriptions (Supabase 연동/실시간 반영/수정/삭제)
   lib/                   # recurrence(결제 주기 계산), format, supabase client
 database/schema.sql       # Supabase 테이블/RLS SQL
+vercel.json               # 이메일 알림 Cron 스케줄
 ```
 
 ## 핵심 기능
@@ -51,3 +67,4 @@ database/schema.sql       # Supabase 테이블/RLS SQL
 - 결제 금액 3자리 콤마 자동 포맷팅
 - Supabase Realtime으로 구독 데이터 변경 시 캘린더 자동 갱신
 - 설정 탭에서 로그인 계정 정보 확인, 로그아웃 시 확인 팝업
+- 구독 서비스별 결제 알림 on/off 토글 + 결제 3일 전·1일 전 이메일 알림 (Vercel Cron + Resend)

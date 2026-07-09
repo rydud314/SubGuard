@@ -16,6 +16,7 @@ interface SubscriptionDetailModalProps {
     patch: Partial<Pick<Subscription, "price" | "cycle_count" | "cycle_unit">>
   ) => Promise<{ error: string | null }>;
   onCancel: (sub: Subscription, occurrenceDate: Date) => Promise<{ error: string | null }>;
+  onToggleNotify: (sub: Subscription, enabled: boolean) => Promise<{ error: string | null }>;
 }
 
 export function SubscriptionDetailModal({
@@ -24,6 +25,7 @@ export function SubscriptionDetailModal({
   onClose,
   onUpdate,
   onCancel,
+  onToggleNotify,
 }: SubscriptionDetailModalProps) {
   const [editing, setEditing] = useState(false);
   const [priceDisplay, setPriceDisplay] = useState(subscription.price.toLocaleString("ko-KR"));
@@ -34,6 +36,21 @@ export function SubscriptionDetailModal({
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [notifyEnabled, setNotifyEnabled] = useState(subscription.notify_enabled);
+  const [togglingNotify, setTogglingNotify] = useState(false);
+
+  const handleToggleNotify = async () => {
+    const next = !notifyEnabled;
+    setNotifyEnabled(next);
+    setTogglingNotify(true);
+    const { error } = await onToggleNotify(subscription, next);
+    setTogglingNotify(false);
+    if (error) {
+      setNotifyEnabled(!next);
+      setErrorMessage(`알림 설정 변경에 실패했어요: ${error}`);
+    }
+  };
 
   const isTrial = subscription.kind === "trial";
   const isTrialWithoutPay = isTrial && subscription.trial_auto_pay === false;
@@ -110,7 +127,30 @@ export function SubscriptionDetailModal({
           </div>
         </div>
 
-        <div className="mt-6 space-y-3 rounded-2xl bg-navy-50/60 p-4">
+        <div className="mt-4 flex items-center justify-between rounded-2xl bg-navy-50/60 p-4">
+          <div>
+            <p className="text-sm font-bold text-navy-800">결제 알림</p>
+            <p className="text-[11px] text-navy-400">3일 전, 1일 전에 이메일로 알려드려요.</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleToggleNotify}
+            disabled={togglingNotify}
+            aria-pressed={notifyEnabled}
+            aria-label="결제 알림 켜기/끄기"
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 disabled:opacity-60 ${
+              notifyEnabled ? "bg-mint-500" : "bg-navy-200"
+            }`}
+          >
+            <span
+              className={`inline-block h-[18px] w-[18px] transform rounded-full bg-white shadow transition-transform duration-200 ${
+                notifyEnabled ? "translate-x-[22px]" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="mt-3 space-y-3 rounded-2xl bg-navy-50/60 p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-navy-400">결제 금액</span>
             {editing ? (

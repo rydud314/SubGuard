@@ -109,6 +109,7 @@ export function useSubscriptions(userId: string | null | undefined) {
           color: sub.color,
           kind: sub.kind,
           trial_auto_pay: sub.trial_auto_pay,
+          notify_enabled: sub.notify_enabled,
         },
       ]);
       if (insertError) return { error: insertError.message };
@@ -136,5 +137,28 @@ export function useSubscriptions(userId: string | null | undefined) {
     [refresh]
   );
 
-  return { subscriptions, loading, error, refresh, addSubscription, updateSubscription, cancelSubscription };
+  /** 이 구독 서비스의 결제일 이메일 알림(3일 전/1일 전)을 켜거나 끈다. */
+  const toggleNotify = useCallback(
+    async (sub: Subscription, enabled: boolean) => {
+      const { error: updateError } = await supabase
+        .from("subscriptions")
+        .update({ notify_enabled: enabled })
+        .eq("id", sub.id);
+      if (updateError) return { error: updateError.message };
+      await refresh();
+      return { error: null };
+    },
+    [refresh]
+  );
+
+  return {
+    subscriptions,
+    loading,
+    error,
+    refresh,
+    addSubscription,
+    updateSubscription,
+    cancelSubscription,
+    toggleNotify,
+  };
 }
