@@ -93,6 +93,7 @@ export default function RegisterRegularPage() {
       color: preset.color,
       kind: "regular",
       trial_auto_pay: null,
+      trial_start_date: null,
     });
 
     setSubmitting(false);

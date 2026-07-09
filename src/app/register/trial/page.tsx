@@ -12,7 +12,7 @@ import {
   suggestSubscriptions,
   type SuggestionResult,
 } from "@/data/koreanSubscriptions";
-import { formatNumberInput, parseNumberInput, toISODate } from "@/lib/format";
+import { formatNumberInput, parseNumberInput } from "@/lib/format";
 
 const TOTAL_FIELDS = 3;
 
@@ -28,9 +28,9 @@ export default function RegisterTrialPage() {
   );
 
   const [autoPay, setAutoPay] = useState(true); // 무료 체험 기간 종료 후 결제 예정 여부
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [priceDisplay, setPriceDisplay] = useState("");
-  const [payDate, setPayDate] = useState("");
-  const [trialDays, setTrialDays] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -38,13 +38,20 @@ export default function RegisterTrialPage() {
 
   const suggestions: SuggestionResult[] = useMemo(() => suggestSubscriptions(name), [name]);
   const price = parseNumberInput(priceDisplay);
-  const trialDayCount = Number(trialDays);
 
-  const isValidPayDate = /^\d{4}-\d{2}-\d{2}$/.test(payDate) && !Number.isNaN(new Date(payDate).getTime());
+  const isValidDate = (value: string) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(value).getTime());
+
+  const trialPeriodDays = useMemo(() => {
+    if (!isValidDate(startDate) || !isValidDate(endDate)) return null;
+    const diff = Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000);
+    return diff >= 0 ? diff : null;
+  }, [startDate, endDate]);
+
   const filledCount = [
     name.trim().length > 0,
-    autoPay ? price > 0 : trialDayCount > 0,
-    autoPay ? isValidPayDate : true,
+    trialPeriodDays !== null,
+    autoPay ? price > 0 : true,
   ].filter(Boolean).length;
   const progress = Math.round((filledCount / TOTAL_FIELDS) * 100);
 
@@ -68,30 +75,22 @@ export default function RegisterTrialPage() {
       setErrorMessage("구독서비스 이름을 입력해주세요.");
       return;
     }
-
-    let finalPayDate: string;
-    let finalPrice: number;
-
-    if (autoPay) {
-      if (!isValidPayDate) {
-        setErrorMessage("결제 예정 날짜를 올바르게 입력해주세요. (예: 2026-07-15)");
-        return;
-      }
-      if (price <= 0) {
-        setErrorMessage("결제 예정 금액을 올바르게 입력해주세요.");
-        return;
-      }
-      finalPayDate = payDate;
-      finalPrice = price;
-    } else {
-      if (!trialDayCount || trialDayCount < 1) {
-        setErrorMessage("무료 체험 기간을 올바르게 입력해주세요.");
-        return;
-      }
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + trialDayCount);
-      finalPayDate = toISODate(endDate);
-      finalPrice = 0;
+    if (!isValidDate(startDate)) {
+      setErrorMessage("무료 체험 시작일을 올바르게 입력해주세요. (예: 2026-07-01)");
+      return;
+    }
+    if (!isValidDate(endDate)) {
+      setErrorMessage("무료 체험 종료일을 올바르게 입력해주세요. (예: 2026-07-15)");
+      return;
+    }
+    if (trialPeriodDays === null) {
+      setErrorMessage("무료 체험 종료일은 시작일 이후여야 해요.");
+      return;
+    }
+    const finalPrice = autoPay ? price : 0;
+    if (autoPay && finalPrice <= 0) {
+      setErrorMessage("결제 예정 금액을 올바르게 입력해주세요.");
+      return;
     }
 
     setSubmitting(true);
@@ -100,13 +99,14 @@ export default function RegisterTrialPage() {
     const { error } = await addSubscription({
       name: name.trim(),
       price: finalPrice,
-      pay_date: finalPayDate,
+      pay_date: endDate,
       cycle_count: 1,
       cycle_unit: "월",
       icon_label: preset.iconLabel,
       color: preset.color,
       kind: "trial",
       trial_auto_pay: autoPay,
+      trial_start_date: startDate,
     });
 
     setSubmitting(false);
@@ -229,49 +229,41 @@ export default function RegisterTrialPage() {
                   !autoPay ? "bg-navy-700 text-white shadow-card" : "bg-navy-50 text-navy-500 hover:bg-navy-100"
                 }`}
               >
-                아니오, 직접 해지할게요
+                아니요, 자동 해지돼요
               </button>
             </div>
           </div>
 
-          {autoPay ? (
-            <>
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-navy-600">결제 예정 날짜</label>
-                <DatePickerField value={payDate} onChange={setPayDate} placeholder="결제 예정 날짜를 입력하세요." />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-navy-600">결제 예정 금액</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={priceDisplay}
-                    onChange={(e) => setPriceDisplay(formatNumberInput(e.target.value))}
-                    placeholder="결제 예정 금액을 입력하세요."
-                    className="input-field pr-10"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-navy-400">
-                    원
-                  </span>
-                </div>
-              </div>
-            </>
-          ) : (
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-bold text-navy-600">무료 체험 기간</label>
+              <label className="mb-1.5 block text-xs font-bold text-navy-600">무료 체험 시작일</label>
+              <DatePickerField value={startDate} onChange={setStartDate} placeholder="시작일을 입력하세요." />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-navy-600">무료 체험 종료일</label>
+              <DatePickerField value={endDate} onChange={setEndDate} placeholder="종료일을 입력하세요." />
+            </div>
+          </div>
+          {trialPeriodDays !== null && (
+            <p className="!-mt-3 text-[11px] font-semibold text-amber-600">
+              무료 체험 기간: {trialPeriodDays}일
+            </p>
+          )}
+
+          {autoPay && (
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-navy-600">결제 예정 금액</label>
               <div className="relative">
                 <input
-                  type="number"
-                  min={1}
+                  type="text"
                   inputMode="numeric"
-                  value={trialDays}
-                  onChange={(e) => setTrialDays(e.target.value)}
-                  placeholder="무료 체험 기간을 입력하세요."
+                  value={priceDisplay}
+                  onChange={(e) => setPriceDisplay(formatNumberInput(e.target.value))}
+                  placeholder="결제 예정 금액을 입력하세요."
                   className="input-field pr-10"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-navy-400">
-                  일
+                  원
                 </span>
               </div>
             </div>

@@ -42,13 +42,13 @@ function buildPreviewSubscriptions(): Subscription[] {
     return d.toISOString().slice(0, 10);
   };
   return [
-    { id: "preview-netflix", user_id: "preview", name: "넷플릭스", price: 17000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "N", color: "#E50914", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
-    { id: "preview-youtube", user_id: "preview", name: "유튜브 프리미엄", price: 14900, pay_date: iso(1), cycle_count: 1, cycle_unit: "월", icon_label: "▶", color: "#FF0000", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
-    { id: "preview-disney", user_id: "preview", name: "디즈니+", price: 9900, pay_date: iso(3), cycle_count: 1, cycle_unit: "월", icon_label: "D", color: "#113CCF", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
-    { id: "preview-spotify", user_id: "preview", name: "스포티파이", price: 10900, pay_date: iso(8), cycle_count: 1, cycle_unit: "월", icon_label: "S", color: "#1DB954", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
-    { id: "preview-watcha", user_id: "preview", name: "왓챠", price: 12900, pay_date: iso(-10), cycle_count: 1, cycle_unit: "월", icon_label: "W", color: "#FF0558", created_at: "", kind: "regular", trial_auto_pay: null, canceled_from: null },
-    { id: "preview-chatgpt-trial", user_id: "preview", name: "챗GPT 플러스", price: 22000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "AI", color: "#10A37F", created_at: today.toISOString(), kind: "trial", trial_auto_pay: true, canceled_from: null },
-    { id: "preview-notion-trial", user_id: "preview", name: "노션", price: 0, pay_date: iso(20), cycle_count: 1, cycle_unit: "월", icon_label: "N", color: "#111111", created_at: new Date(today.getTime() - 10 * 86400000).toISOString(), kind: "trial", trial_auto_pay: false, canceled_from: null },
+    { id: "preview-netflix", user_id: "preview", name: "넷플릭스", price: 17000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "N", color: "#E50914", created_at: "", kind: "regular", trial_auto_pay: null, trial_start_date: null, canceled_from: null },
+    { id: "preview-youtube", user_id: "preview", name: "유튜브 프리미엄", price: 14900, pay_date: iso(1), cycle_count: 1, cycle_unit: "월", icon_label: "▶", color: "#FF0000", created_at: "", kind: "regular", trial_auto_pay: null, trial_start_date: null, canceled_from: null },
+    { id: "preview-disney", user_id: "preview", name: "디즈니+", price: 9900, pay_date: iso(3), cycle_count: 1, cycle_unit: "월", icon_label: "D", color: "#113CCF", created_at: "", kind: "regular", trial_auto_pay: null, trial_start_date: null, canceled_from: null },
+    { id: "preview-spotify", user_id: "preview", name: "스포티파이", price: 10900, pay_date: iso(8), cycle_count: 1, cycle_unit: "월", icon_label: "S", color: "#1DB954", created_at: "", kind: "regular", trial_auto_pay: null, trial_start_date: null, canceled_from: null },
+    { id: "preview-watcha", user_id: "preview", name: "왓챠", price: 12900, pay_date: iso(-10), cycle_count: 1, cycle_unit: "월", icon_label: "W", color: "#FF0558", created_at: "", kind: "regular", trial_auto_pay: null, trial_start_date: null, canceled_from: null },
+    { id: "preview-chatgpt-trial", user_id: "preview", name: "챗GPT 플러스", price: 22000, pay_date: iso(2), cycle_count: 1, cycle_unit: "월", icon_label: "AI", color: "#10A37F", created_at: today.toISOString(), kind: "trial", trial_auto_pay: true, trial_start_date: iso(-5), canceled_from: null },
+    { id: "preview-notion-trial", user_id: "preview", name: "노션", price: 0, pay_date: iso(20), cycle_count: 1, cycle_unit: "월", icon_label: "N", color: "#111111", created_at: new Date(today.getTime() - 10 * 86400000).toISOString(), kind: "trial", trial_auto_pay: false, trial_start_date: iso(-10), canceled_from: null },
   ];
 }
 

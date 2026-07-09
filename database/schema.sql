@@ -15,12 +15,14 @@ create table if not exists public.subscriptions (
   created_at timestamptz not null default now(),
   kind text not null default 'regular',
   trial_auto_pay boolean,
+  trial_start_date date,
   canceled_from date
 );
 
 -- 이미 만들어진 테이블에 새 컬럼을 추가해야 하는 경우(마이그레이션)에도 안전하게 실행된다.
 alter table public.subscriptions add column if not exists kind text not null default 'regular';
 alter table public.subscriptions add column if not exists trial_auto_pay boolean;
+alter table public.subscriptions add column if not exists trial_start_date date;
 alter table public.subscriptions add column if not exists canceled_from date;
 
 alter table public.subscriptions drop constraint if exists subscriptions_kind_check;

@@ -36,10 +36,10 @@ export function SubscriptionDetailModal({
   const isTrialInProgress = subscription.kind === "trial" && new Date() < new Date(subscription.pay_date);
 
   const trialPeriodDays = (() => {
-    if (!isTrialWithoutPay) return null;
-    const created = new Date(subscription.created_at);
+    if (!isTrialWithoutPay || !subscription.trial_start_date) return null;
+    const start = new Date(subscription.trial_start_date);
     const end = new Date(subscription.pay_date);
-    const days = Math.round((end.getTime() - created.getTime()) / 86400000);
+    const days = Math.round((end.getTime() - start.getTime()) / 86400000);
     return Number.isFinite(days) && days > 0 ? days : null;
   })();
 
@@ -156,6 +156,15 @@ export function SubscriptionDetailModal({
               </span>
             )}
           </div>
+
+          {isTrialWithoutPay && subscription.trial_start_date && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-navy-400">무료 체험 시작일</span>
+              <span className="text-sm font-bold text-navy-800">
+                {subscription.trial_start_date.replace(/-/g, ".")}
+              </span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-navy-400">
