@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ShieldLogo } from "@/components/icons/ShieldLogo";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 interface AccountInfo {
   email: string;
@@ -13,7 +14,16 @@ interface AccountInfo {
 interface SidebarProps {
   onSignOut?: () => void;
   account?: AccountInfo | null;
+  userId?: string | null;
 }
+
+const PUSH_STATUS_TEXT: Record<string, string> = {
+  loading: "확인 중...",
+  unsupported: "이 브라우저는 지원하지 않아요.",
+  denied: "브라우저 설정에서 알림 권한을 허용해주세요.",
+  subscribed: "이 브라우저에서 알림을 받고 있어요.",
+  unsubscribed: "이 브라우저에서 결제일 알림을 받아보세요.",
+};
 
 function NavIcon({
   active,
@@ -42,11 +52,13 @@ function NavIcon({
   );
 }
 
-export function Sidebar({ onSignOut, account }: SidebarProps) {
+export function Sidebar({ onSignOut, account, userId }: SidebarProps) {
   const [showAccountInfo, setShowAccountInfo] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const settingsWrapperRef = useRef<HTMLDivElement>(null);
+  const { status: pushStatus, busy: pushBusy, errorMessage: pushError, subscribe: subscribePush, unsubscribe: unsubscribePush } =
+    usePushNotifications(userId);
 
   const toggleAccountInfo = () => {
     if (!showAccountInfo) {
@@ -127,7 +139,29 @@ export function Sidebar({ onSignOut, account }: SidebarProps) {
               </h2>
               <p className="mt-1 text-xs text-navy-400">{account?.email}</p>
 
-              <div className="mt-5 border-t border-navy-100 pt-4">
+              <div className="mt-5 border-t border-navy-100 pt-4 text-left">
+                <p className="text-xs font-bold text-navy-800">브라우저 알림</p>
+                <p className="mt-0.5 text-[11px] text-navy-400">{PUSH_STATUS_TEXT[pushStatus]}</p>
+
+                {(pushStatus === "subscribed" || pushStatus === "unsubscribed") && (
+                  <button
+                    type="button"
+                    onClick={pushStatus === "subscribed" ? unsubscribePush : subscribePush}
+                    disabled={pushBusy}
+                    className={`mt-2 w-full rounded-xl px-3 py-2 text-xs font-bold transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 ${
+                      pushStatus === "subscribed"
+                        ? "bg-rose-50 text-rose-500 hover:bg-rose-100"
+                        : "bg-mint-500 text-white shadow-card"
+                    }`}
+                  >
+                    {pushBusy ? "처리 중..." : pushStatus === "subscribed" ? "이 브라우저 알림 끄기" : "이 브라우저에서 알림 켜기"}
+                  </button>
+                )}
+
+                {pushError && <p className="mt-2 text-[11px] font-medium text-rose-500">{pushError}</p>}
+              </div>
+
+              <div className="mt-4 border-t border-navy-100 pt-4">
                 <button
                   type="button"
                   onClick={() => {
