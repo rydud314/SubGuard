@@ -17,11 +17,14 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 export type PushStatus = "loading" | "unsupported" | "denied" | "unsubscribed" | "subscribed";
+export type TestPushStatus = "idle" | "sending" | "sent" | "error";
 
 export function usePushNotifications(userId: string | null | undefined) {
   const [status, setStatus] = useState<PushStatus>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [testStatus, setTestStatus] = useState<TestPushStatus>("idle");
+  const [testMessage, setTestMessage] = useState<string | null>(null);
 
   const checkStatus = useCallback(async () => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -108,5 +111,45 @@ export function usePushNotifications(userId: string | null | undefined) {
     }
   }, []);
 
-  return { status, busy, errorMessage, subscribe, unsubscribe };
+  const sendTestNotification = useCallback(async () => {
+    setTestStatus("sending");
+    setTestMessage(null);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        setTestStatus("error");
+        setTestMessage("로그인이 필요합니다.");
+        return;
+      }
+
+      const res = await fetch("/api/push/test", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        setTestStatus("error");
+        setTestMessage(json.error ?? "테스트 알림 발송에 실패했어요.");
+        return;
+      }
+      if (json.sent === 0) {
+        setTestStatus("error");
+        setTestMessage(json.message ?? "등록된 구독이 없어요.");
+        return;
+      }
+
+      const anySent = Array.isArray(json.results) && json.results.some((r: { sent?: boolean }) => r.sent);
+      setTestStatus(anySent ? "sent" : "error");
+      setTestMessage(anySent ? "테스트 알림을 보냈어요. 잠시 후 알림을 확인해보세요." : "발송에 실패했어요.");
+    } catch (e) {
+      setTestStatus("error");
+      setTestMessage(e instanceof Error ? e.message : "테스트 알림 발송에 실패했어요.");
+    }
+  }, []);
+
+  return { status, busy, errorMessage, subscribe, unsubscribe, testStatus, testMessage, sendTestNotification };
 }

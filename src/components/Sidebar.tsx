@@ -57,8 +57,16 @@ export function Sidebar({ onSignOut, account, userId }: SidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const settingsWrapperRef = useRef<HTMLDivElement>(null);
-  const { status: pushStatus, busy: pushBusy, errorMessage: pushError, subscribe: subscribePush, unsubscribe: unsubscribePush } =
-    usePushNotifications(userId);
+  const {
+    status: pushStatus,
+    busy: pushBusy,
+    errorMessage: pushError,
+    subscribe: subscribePush,
+    unsubscribe: unsubscribePush,
+    testStatus: pushTestStatus,
+    testMessage: pushTestMessage,
+    sendTestNotification,
+  } = usePushNotifications(userId);
 
   const toggleAccountInfo = () => {
     if (!showAccountInfo) {
@@ -159,6 +167,28 @@ export function Sidebar({ onSignOut, account, userId }: SidebarProps) {
                 )}
 
                 {pushError && <p className="mt-2 text-[11px] font-medium text-rose-500">{pushError}</p>}
+
+                {pushStatus === "subscribed" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={sendTestNotification}
+                      disabled={pushTestStatus === "sending"}
+                      className="mt-2 w-full rounded-xl bg-navy-50 px-3 py-2 text-xs font-bold text-navy-600 transition-all hover:scale-105 hover:bg-navy-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {pushTestStatus === "sending" ? "보내는 중..." : "테스트 알림 보내기"}
+                    </button>
+                    {pushTestMessage && (
+                      <p
+                        className={`mt-2 text-[11px] font-medium ${
+                          pushTestStatus === "error" ? "text-rose-500" : "text-mint-600"
+                        }`}
+                      >
+                        {pushTestMessage}
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
 
               <div className="mt-4 border-t border-navy-100 pt-4">
