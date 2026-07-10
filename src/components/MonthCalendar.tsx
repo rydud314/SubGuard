@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Subscription } from "@/types/subscription";
 import { getOccurrenceDaysInMonth } from "@/lib/recurrence";
 import { formatWon, isSameDay } from "@/lib/format";
@@ -41,6 +41,9 @@ export function MonthCalendar({
   const month = currentDate.getMonth();
   const today = new Date();
   const [openDropdown, setOpenDropdown] = useState<null | "year" | "month">(null);
+  const [expandedDay, setExpandedDay] = useState<number | null>(null);
+
+  useEffect(() => setExpandedDay(null), [year, month]);
 
   const grid = useMemo(() => buildMonthGrid(year, month), [year, month]);
 
@@ -162,7 +165,7 @@ export function MonthCalendar({
           return (
             <div
               key={date.toISOString()}
-              className={`min-h-[64px] rounded-lg p-1.5 transition-colors sm:min-h-[92px] sm:p-2 ${
+              className={`relative min-h-[64px] rounded-lg p-1.5 transition-colors sm:min-h-[92px] sm:p-2 ${
                 inCurrentMonth ? "bg-white/50" : "bg-transparent"
               }`}
             >
@@ -206,11 +209,45 @@ export function MonthCalendar({
                   </button>
                 ))}
                 {dayOccurrences.length > 2 && (
-                  <span className="text-[9px] font-medium text-navy-400">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedDay(date.getDate())}
+                    className="text-left text-[9px] font-medium text-navy-400 transition-colors hover:text-mint-600 hover:underline"
+                  >
                     +{dayOccurrences.length - 2}개 더보기
-                  </span>
+                  </button>
                 )}
               </div>
+
+              {expandedDay === date.getDate() && inCurrentMonth && (
+                <>
+                  <div className="fixed inset-0 z-20" onClick={() => setExpandedDay(null)} />
+                  <div className="absolute left-1/2 top-full z-30 mt-1 w-40 -translate-x-1/2 rounded-xl border border-mint-100 bg-white p-2 shadow-xl animate-pop-in">
+                    <p className="px-1 pb-1 text-[10px] font-bold text-navy-400">
+                      {month + 1}월 {date.getDate()}일
+                    </p>
+                    <div className="flex max-h-48 flex-col gap-1 overflow-y-auto">
+                      {dayOccurrences.map(({ sub }, idx) => (
+                        <button
+                          key={`${sub.id}-expanded-${idx}`}
+                          type="button"
+                          onClick={() => {
+                            onSelectSubscription(sub, date);
+                            setExpandedDay(null);
+                          }}
+                          className="flex items-center gap-1.5 truncate rounded-lg px-1.5 py-1 text-left text-[10px] font-bold text-white shadow-sm transition-transform hover:scale-105"
+                          style={{ backgroundColor: sub.color }}
+                        >
+                          <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-white/30 text-[8px] leading-none">
+                            {sub.icon_label}
+                          </span>
+                          <span className="truncate">{sub.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           );
         })}
