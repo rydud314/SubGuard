@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import webpush from "web-push";
 import { getNextOccurrence } from "@/lib/recurrence";
 import { daysUntil, toISODate } from "@/lib/format";
+import { buildPaymentReminderEmail } from "@/lib/emailTemplate";
 import type { PushSubscriptionRow, Subscription } from "@/types/subscription";
 
 // Vercel Cron이 매일 호출하는 서버 전용 엔드포인트.
@@ -90,17 +91,14 @@ export async function GET(request: Request) {
 
       if (email) {
         const daysLabel = daysLabelOf(emailTarget);
-        const subject = `[SubGuard] ${sub.name} ${actionLabel}이 ${daysLabel} 후예요`;
-        const html = `
-          <div style="font-family:sans-serif;padding:24px;color:#132A4C;">
-            <h2 style="margin:0 0 12px;">${sub.name} ${actionLabel} 알림</h2>
-            <p style="margin:0 0 8px;">${occurrenceISO}에 ${actionLabel}이 예정되어 있어요. (${daysLabel} 남음)</p>
-            ${isPayment ? `<p style="margin:0 0 8px;">결제 금액: ${sub.price.toLocaleString("ko-KR")}원</p>` : ""}
-            <p style="margin-top:16px;color:#94A3B8;font-size:12px;">
-              이 알림을 더 받고 싶지 않다면 SubGuard 앱에서 해당 구독의 결제 알림을 꺼주세요.
-            </p>
-          </div>
-        `;
+        const { subject, html } = buildPaymentReminderEmail({
+          name: sub.name,
+          price: sub.price,
+          actionLabel,
+          daysLabel,
+          occurrenceISO,
+          isPayment,
+        });
 
         const { error: sendError } = await resend.emails.send({
           from: "SubGuard <onboarding@resend.dev>",
