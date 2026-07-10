@@ -8,9 +8,10 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { ShieldLogo } from "@/components/icons/ShieldLogo";
 import {
   KOREAN_SUBSCRIPTIONS,
+  popularSubscriptions,
   resolvePresetByName,
   suggestSubscriptions,
-  type SuggestionResult,
+  type SubscriptionPreset,
 } from "@/data/koreanSubscriptions";
 import { formatNumberInput, parseNumberInput } from "@/lib/format";
 
@@ -36,7 +37,9 @@ export default function RegisterTrialPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
 
-  const suggestions: SuggestionResult[] = useMemo(() => suggestSubscriptions(name), [name]);
+  const popular = useMemo(() => popularSubscriptions(6), []);
+  const suggestions = useMemo(() => suggestSubscriptions(name), [name]);
+  const displaySuggestions: SubscriptionPreset[] = name.trim() ? suggestions : popular;
   const price = parseNumberInput(priceDisplay);
 
   const isValidDate = (value: string) =>
@@ -55,9 +58,12 @@ export default function RegisterTrialPage() {
   ].filter(Boolean).length;
   const progress = Math.round((filledCount / TOTAL_FIELDS) * 100);
 
-  const handleSelectSuggestion = (preset: SuggestionResult) => {
+  const handleSelectSuggestion = (preset: SubscriptionPreset) => {
     setName(preset.name);
     setSelectedPreset({ iconLabel: preset.iconLabel, color: preset.color });
+    if (preset.typicalPrice) {
+      setPriceDisplay(formatNumberInput(String(preset.typicalPrice)));
+    }
     setShowSuggestions(false);
   };
 
@@ -181,30 +187,35 @@ export default function RegisterTrialPage() {
               />
             </div>
 
-            {showSuggestions && name.trim() && suggestions.length > 0 && (
-              <ul className="absolute z-10 mt-2 w-full overflow-hidden rounded-xl border border-mint-100 bg-white shadow-xl animate-pop-in">
-                {suggestions.map((s) => (
-                  <li key={s.name}>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectSuggestion(s)}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-mint-50"
-                    >
-                      <span
-                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm"
-                        style={{ backgroundColor: s.color }}
+            {showSuggestions && displaySuggestions.length > 0 && (
+              <div className="absolute z-10 mt-2 w-full overflow-hidden rounded-xl border border-mint-100 bg-white shadow-xl animate-pop-in">
+                <p className="px-4 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wide text-navy-300">
+                  {name.trim() ? "추천 검색어" : "인기 구독 서비스"}
+                </p>
+                <ul>
+                  {displaySuggestions.map((s) => (
+                    <li key={s.name}>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectSuggestion(s)}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-mint-50"
                       >
-                        {s.iconLabel}
-                      </span>
-                      <span className="font-medium text-navy-700">{s.name}</span>
-                      <span className="ml-auto text-[10px] text-navy-300">{s.category}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                        <span
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm"
+                          style={{ backgroundColor: s.color }}
+                        >
+                          {s.iconLabel}
+                        </span>
+                        <span className="font-medium text-navy-700">{s.name}</span>
+                        <span className="ml-auto text-[10px] text-navy-300">{s.category}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             <p className="mt-1.5 text-[11px] text-navy-400">
-              인기 구독서비스 {KOREAN_SUBSCRIPTIONS.length}종과 비교해 가장 유사한 서비스를 추천해드려요.
+              인기 구독서비스 {KOREAN_SUBSCRIPTIONS.length}종과 비교해 가장 유사한 서비스를 추천하고, 선택하면 결제 예정 금액도 자동으로 채워드려요.
             </p>
           </div>
 

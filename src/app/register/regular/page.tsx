@@ -8,9 +8,10 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { ShieldLogo } from "@/components/icons/ShieldLogo";
 import {
   KOREAN_SUBSCRIPTIONS,
+  popularSubscriptions,
   resolvePresetByName,
   suggestSubscriptions,
-  type SuggestionResult,
+  type SubscriptionPreset,
 } from "@/data/koreanSubscriptions";
 import { formatNumberInput, parseNumberInput } from "@/lib/format";
 import type { CycleUnit } from "@/types/subscription";
@@ -38,7 +39,9 @@ export default function RegisterRegularPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
 
-  const suggestions: SuggestionResult[] = useMemo(() => suggestSubscriptions(name), [name]);
+  const popular = useMemo(() => popularSubscriptions(6), []);
+  const suggestions = useMemo(() => suggestSubscriptions(name), [name]);
+  const displaySuggestions: SubscriptionPreset[] = name.trim() ? suggestions : popular;
   const price = parseNumberInput(priceDisplay);
 
   const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(payDate) && !Number.isNaN(new Date(payDate).getTime());
@@ -47,9 +50,12 @@ export default function RegisterRegularPage() {
   ).length;
   const progress = Math.round((filledCount / TOTAL_FIELDS) * 100);
 
-  const handleSelectSuggestion = (preset: SuggestionResult) => {
+  const handleSelectSuggestion = (preset: SubscriptionPreset) => {
     setName(preset.name);
     setSelectedPreset({ iconLabel: preset.iconLabel, color: preset.color });
+    if (preset.typicalPrice) {
+      setPriceDisplay(formatNumberInput(String(preset.typicalPrice)));
+    }
     setShowSuggestions(false);
   };
 
@@ -168,30 +174,35 @@ export default function RegisterRegularPage() {
               />
             </div>
 
-            {showSuggestions && name.trim() && suggestions.length > 0 && (
-              <ul className="absolute z-10 mt-2 w-full overflow-hidden rounded-xl border border-mint-100 bg-white shadow-xl animate-pop-in">
-                {suggestions.map((s) => (
-                  <li key={s.name}>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectSuggestion(s)}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-mint-50"
-                    >
-                      <span
-                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm"
-                        style={{ backgroundColor: s.color }}
+            {showSuggestions && displaySuggestions.length > 0 && (
+              <div className="absolute z-10 mt-2 w-full overflow-hidden rounded-xl border border-mint-100 bg-white shadow-xl animate-pop-in">
+                <p className="px-4 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wide text-navy-300">
+                  {name.trim() ? "추천 검색어" : "인기 구독 서비스"}
+                </p>
+                <ul>
+                  {displaySuggestions.map((s) => (
+                    <li key={s.name}>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectSuggestion(s)}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-mint-50"
                       >
-                        {s.iconLabel}
-                      </span>
-                      <span className="font-medium text-navy-700">{s.name}</span>
-                      <span className="ml-auto text-[10px] text-navy-300">{s.category}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                        <span
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm"
+                          style={{ backgroundColor: s.color }}
+                        >
+                          {s.iconLabel}
+                        </span>
+                        <span className="font-medium text-navy-700">{s.name}</span>
+                        <span className="ml-auto text-[10px] text-navy-300">{s.category}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             <p className="mt-1.5 text-[11px] text-navy-400">
-              인기 구독서비스 {KOREAN_SUBSCRIPTIONS.length}종과 비교해 가장 유사한 서비스를 추천해드려요.
+              인기 구독서비스 {KOREAN_SUBSCRIPTIONS.length}종과 비교해 가장 유사한 서비스를 추천하고, 선택하면 결제 금액도 자동으로 채워드려요.
             </p>
           </div>
 
@@ -228,25 +239,21 @@ export default function RegisterRegularPage() {
                 className="input-field w-20 text-center"
               />
               <span className="text-sm font-medium text-navy-500">회 /</span>
-              <div className="relative flex-1">
-                <select
-                  value={cycleUnit}
-                  onChange={(e) => setCycleUnit(e.target.value as CycleUnit)}
-                  className="input-field appearance-none pr-9"
-                >
-                  {CYCLE_UNITS.map((unit) => (
-                    <option key={unit} value={unit}>
-                      {unit}
-                    </option>
-                  ))}
-                </select>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400"
-                >
-                  <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+              <div className="flex flex-1 gap-1 rounded-2xl border border-navy-100 bg-navy-50 p-1">
+                {CYCLE_UNITS.map((unit) => (
+                  <button
+                    key={unit}
+                    type="button"
+                    onClick={() => setCycleUnit(unit)}
+                    className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all duration-200 ${
+                      cycleUnit === unit
+                        ? "bg-white text-mint-600 shadow-sm"
+                        : "text-navy-400 hover:text-navy-600"
+                    }`}
+                  >
+                    {unit}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
