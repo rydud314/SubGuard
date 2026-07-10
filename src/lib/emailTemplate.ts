@@ -8,10 +8,10 @@ export function buildPaymentReminderEmail(params: {
 }) {
   const { name, price, actionLabel, daysLabel, occurrenceISO, isPayment } = params;
 
-  const subject = `"${name}" ${actionLabel}가 ${daysLabel} 후예요.`;
+  const subject = `${name} ${actionLabel}가 ${daysLabel} 후예요.`;
   const html = `
     <div style="font-family:sans-serif;padding:24px;color:#132A4C;">
-      <h2 style="margin:0 0 12px;">"${name}" ${actionLabel} 알림</h2>
+      <h2 style="margin:0 0 12px;">${name} ${actionLabel} 알림</h2>
       <p style="margin:0 0 8px;">${occurrenceISO}에 ${actionLabel}가 예정되어 있어요.</p>
       ${isPayment ? `<p style="margin:0 0 8px;">결제 금액 : ${price.toLocaleString("ko-KR")}원</p>` : ""}
       <p style="margin-top:16px;color:#94A3B8;font-size:12px;">

@@ -22,24 +22,36 @@ export async function GET(request: Request) {
   }
 
   const resend = new Resend(resendApiKey);
-  const { subject, html } = buildPaymentReminderEmail({
-    name: "넷플릭스",
-    price: 17000,
-    actionLabel: "결제",
-    daysLabel: "3일",
-    occurrenceISO: "2026-07-13",
-    isPayment: true,
-  });
 
-  const { data, error } = await resend.emails.send({
-    from: "SubGuard <onboarding@resend.dev>",
-    to: "rydud314@gmail.com",
-    subject,
-    html,
-  });
+  const samples = [
+    buildPaymentReminderEmail({
+      name: "넷플릭스",
+      price: 17000,
+      actionLabel: "결제",
+      daysLabel: "3일",
+      occurrenceISO: "2026-07-13",
+      isPayment: true,
+    }),
+    buildPaymentReminderEmail({
+      name: "노션",
+      price: 0,
+      actionLabel: "무료 체험 종료",
+      daysLabel: "1일",
+      occurrenceISO: "2026-07-11",
+      isPayment: false,
+    }),
+  ];
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  const results = [];
+  for (const { subject, html } of samples) {
+    const { data, error } = await resend.emails.send({
+      from: "SubGuard <onboarding@resend.dev>",
+      to: "rydud314@gmail.com",
+      subject,
+      html,
+    });
+    results.push(error ? { subject, error: error.message } : { subject, sent: true, id: data?.id });
   }
-  return NextResponse.json({ sent: true, id: data?.id });
+
+  return NextResponse.json({ results });
 }
