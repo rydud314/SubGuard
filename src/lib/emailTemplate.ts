@@ -1,14 +1,21 @@
+/** 실제 남은 일수를 그대로 문구로 바꾼다. 3일전/1일전 발송 창을 놓쳐 늦게 보내는 경우에도 정확한 날짜 수를 보여주기 위함. */
+export function formatRelativeDayLabel(diff: number): string {
+  return diff <= 0 ? "오늘" : `${diff}일 후`;
+}
+
 export function buildPaymentReminderEmail(params: {
   name: string;
   price: number;
   actionLabel: string;
-  daysLabel: string;
+  daysUntilTarget: number;
   occurrenceISO: string;
   isPayment: boolean;
 }) {
-  const { name, price, actionLabel, daysLabel, occurrenceISO, isPayment } = params;
+  const { name, price, actionLabel, daysUntilTarget, occurrenceISO, isPayment } = params;
+  const label = formatRelativeDayLabel(daysUntilTarget);
 
-  const subject = `${name} ${actionLabel}가 ${daysLabel} 후예요.`;
+  const subject =
+    label === "오늘" ? `${name} ${actionLabel}가 오늘이에요.` : `${name} ${actionLabel}가 ${label}예요.`;
   const html = `
     <div style="font-family:sans-serif;padding:24px;color:#132A4C;">
       <h2 style="margin:0 0 12px;">${name} ${actionLabel} 알림</h2>

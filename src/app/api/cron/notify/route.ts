@@ -4,11 +4,13 @@ import { Resend } from "resend";
 import webpush from "web-push";
 import { getNextOccurrence } from "@/lib/recurrence";
 import { daysUntil, toISODate } from "@/lib/format";
-import { buildPaymentReminderEmail } from "@/lib/emailTemplate";
+import { buildPaymentReminderEmail, formatRelativeDayLabel } from "@/lib/emailTemplate";
 import type { PushSubscriptionRow, Subscription } from "@/types/subscription";
 
 // Vercel Cron이 매일 호출하는 서버 전용 엔드포인트.
 // 각 구독 서비스의 결제(또는 무료체험 종료)일이 3일 전/1일 전이면 이메일과 브라우저 푸시로 각각 1회씩 알린다.
+// 등록 시점이 늦어 3일전/1일전 창을 이미 지나쳤어도, 아직 결제일 전이고 해당 회차로 발송한 적이 없다면
+// 다음 실행 때 놓치지 않고 보낸다(pickTarget 참고).
 // SUPABASE_SERVICE_ROLE_KEY / RESEND_API_KEY / CRON_SECRET / VAPID_PRIVATE_KEY는 진짜 비밀값이라
 // (공개용 anon 키·VAPID 공개키와 달리) 소스코드에 하드코딩하지 않고 Vercel 환경 변수로만 관리한다.
 
@@ -21,8 +23,19 @@ function isAuthorized(request: Request): boolean {
   return request.headers.get("authorization") === `Bearer ${secret}`;
 }
 
-function daysLabelOf(target: "3d" | "1d") {
-  return target === "3d" ? "3일" : "1일";
+// 원래 창(3일전/1일전)을 놓쳤더라도(늦은 등록, 크론 실행 실패 등) 다음 실행 때 반드시 한 번은 보내도록
+// 정확히 diff===3 / diff===1이 아니라 diff<=3 / diff<=1 범위로 판단한다. 이미 보낸 회차(occurrenceISO)는
+// notified_*_for로 걸러 중복 발송을 막는다.
+function pickTarget(
+  diff: number,
+  notified3dFor: string | null,
+  notified1dFor: string | null,
+  occurrenceISO: string
+): "3d" | "1d" | null {
+  if (diff < 0) return null;
+  if (diff <= 1 && notified1dFor !== occurrenceISO) return "1d";
+  if (diff <= 3 && notified3dFor !== occurrenceISO) return "3d";
+  return null;
 }
 
 export async function GET(request: Request) {
@@ -71,13 +84,8 @@ export async function GET(request: Request) {
     const diff = daysUntil(next, today);
     const occurrenceISO = toISODate(next);
 
-    let emailTarget: "3d" | "1d" | null = null;
-    if (diff === 3 && sub.notified_3d_for !== occurrenceISO) emailTarget = "3d";
-    else if (diff === 1 && sub.notified_1d_for !== occurrenceISO) emailTarget = "1d";
-
-    let pushTarget: "3d" | "1d" | null = null;
-    if (diff === 3 && sub.push_notified_3d_for !== occurrenceISO) pushTarget = "3d";
-    else if (diff === 1 && sub.push_notified_1d_for !== occurrenceISO) pushTarget = "1d";
+    const emailTarget = pickTarget(diff, sub.notified_3d_for, sub.notified_1d_for, occurrenceISO);
+    const pushTarget = pickTarget(diff, sub.push_notified_3d_for, sub.push_notified_1d_for, occurrenceISO);
 
     if (!emailTarget && !pushTarget) continue;
 
@@ -90,12 +98,11 @@ export async function GET(request: Request) {
       const email = userData?.user?.email;
 
       if (email) {
-        const daysLabel = daysLabelOf(emailTarget);
         const { subject, html } = buildPaymentReminderEmail({
           name: sub.name,
           price: sub.price,
           actionLabel,
-          daysLabel,
+          daysUntilTarget: diff,
           occurrenceISO,
           isPayment,
         });
@@ -120,10 +127,10 @@ export async function GET(request: Request) {
     if (pushTarget && vapidPrivateKey) {
       const rows = pushByUser.get(sub.user_id) ?? [];
       if (rows.length > 0) {
-        const daysLabel = daysLabelOf(pushTarget);
+        const label = formatRelativeDayLabel(diff);
         const payload = JSON.stringify({
           title: `[SubGuard] ${sub.name} ${actionLabel}`,
-          body: `${daysLabel} 후 ${actionLabel} 예정이에요. (${occurrenceISO})`,
+          body: `${label} ${actionLabel} 예정이에요. (${occurrenceISO})`,
           url: "/",
         });
 
